@@ -1,5 +1,5 @@
-use rust_by_example::enum_type::execute_enum_type;
+use rust_by_example::conversion::execute_conversion;
 
 fn main() {
-    execute_enum_type();
+    execute_conversion();
 }
