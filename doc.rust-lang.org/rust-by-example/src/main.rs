@@ -1,5 +1,5 @@
-use rust_by_example::display::execute_display;
+use rust_by_example::primitive_data::execute_data;
 
 fn main() {
-    execute_display();
+    execute_data();
 }
