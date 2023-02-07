@@ -1,5 +1,5 @@
-use rust_by_example::conversion::execute_conversion;
+use rust_by_example::conditional_branch::execute_conditional_branch;
 
 fn main() {
-    execute_conversion();
+    execute_conditional_branch();
 }
