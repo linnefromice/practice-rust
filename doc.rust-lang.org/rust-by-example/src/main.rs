@@ -1,5 +1,5 @@
-use rust_by_example::custom_type::execute_custom_type;
+use rust_by_example::enum_type::execute_enum_type;
 
 fn main() {
-    execute_custom_type();
+    execute_enum_type();
 }
