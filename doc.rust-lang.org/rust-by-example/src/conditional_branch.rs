@@ -41,6 +41,33 @@ fn execute_match_destruct_tuple(triple: (i32, i32, i32)) {
     }
 }
 
+fn execute_match_destruct_pointer() {
+    let reference = &4;
+
+    match reference {
+        &val => println!("Got a value via destructuring: {:?}", val),
+    }
+    match *reference {
+        val => println!("Got a value via dereferencing: {:?}", val),
+    }
+
+    let value = 5;
+    // ref を使用 -> reference を作成
+    match value {
+        ref r => println!("Got a reference to a value: {:?}", r),
+    }
+
+    let mut mut_value = 6;
+    match mut_value {
+        ref mut m => {
+            *m += 10;
+            println!("We added 10, `mut_value`: {:?}", m);
+        }
+    }
+}
+
 pub fn execute_conditional_branch_match() {
+    execute_simple_match(13, true);
     execute_match_destruct_tuple((0, -2, 3));
+    execute_match_destruct_pointer();
 }
