@@ -71,3 +71,23 @@ pub fn execute_conditional_branch_match() {
     execute_match_destruct_tuple((0, -2, 3));
     execute_match_destruct_pointer();
 }
+
+enum Level {
+    Some(u32),
+    High,
+    Middle,
+    Row
+}
+
+pub fn execute_conditional_branch_guard() {
+    let level = Level::Some(0);
+
+    match level {
+        Level::Some(n) if n > 0 => println!("Some n>0"),
+        Level::Some(n) if n == 0 => println!("Some n==0"),
+        Level::Some(_) => println!("Some"), // need for compile error
+        Level::High => println!("High"),
+        Level::Middle => println!("Middle"),
+        Level::Row => println!("Row"),
+    }
+}
