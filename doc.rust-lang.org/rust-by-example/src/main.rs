@@ -1,5 +1,5 @@
-use rust_by_example::function::execute_closure_3;
+use rust_by_example::generics_associated_type::execute;
 
 fn main() {
-    execute_closure_3();
+    execute();
 }
