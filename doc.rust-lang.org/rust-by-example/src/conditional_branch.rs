@@ -91,3 +91,28 @@ pub fn execute_conditional_branch_guard() {
         Level::Row => println!("Row"),
     }
 }
+
+enum Foo {
+    Bar,
+    Baz(u32),
+    Qux(u32),
+}
+
+pub fn execute_conditional_branch_if_let() {
+    let number = Some(7);
+    if let Some(i) = number {
+        println!("Matched {:?}", i);
+    }
+
+    let qux = Foo::Qux(100);
+    if let Foo::Qux(x) = qux {
+        println!("c is {}", x);
+    }
+    if let Foo::Qux(value @ 100) = qux {
+        println!("c is one hundred");
+    }
+    let Foo::Baz(c) = qux else {
+        panic!("Can't parse qux");
+    };
+    println!("c is {}", c)
+}

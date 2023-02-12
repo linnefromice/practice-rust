@@ -1,5 +1,5 @@
-use rust_by_example::conditional_branch::execute_conditional_branch_guard;
+use rust_by_example::function::execute_closure_3;
 
 fn main() {
-    execute_conditional_branch_guard();
+    execute_closure_3();
 }
