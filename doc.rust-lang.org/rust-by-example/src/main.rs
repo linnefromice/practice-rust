@@ -1,4 +1,4 @@
-use rust_by_example::trait_intro::execute;
+use rust_by_example::trait_dyn::execute;
 
 fn main() {
     execute();
