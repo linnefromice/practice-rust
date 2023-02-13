@@ -1,4 +1,4 @@
-use rust_by_example::generics_associated_type::execute;
+use rust_by_example::trait_intro::execute;
 
 fn main() {
     execute();

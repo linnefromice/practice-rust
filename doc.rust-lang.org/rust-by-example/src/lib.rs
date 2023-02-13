@@ -11,3 +11,4 @@ pub mod generics_trait;
 pub mod generics_bound;
 pub mod generics_multi_bound;
 pub mod generics_associated_type;
+pub mod trait_intro;
