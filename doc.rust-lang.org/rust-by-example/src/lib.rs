@@ -16,3 +16,4 @@ pub mod trait_dyn;
 // pub mod trait_overload_operator;
 pub mod trait_iterator;
 pub mod trait_supertraits;
+pub mod macro_rules_all;
