@@ -15,3 +15,4 @@ pub mod trait_intro;
 pub mod trait_dyn;
 // pub mod trait_overload_operator;
 pub mod trait_iterator;
+pub mod trait_supertraits;
