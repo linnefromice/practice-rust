@@ -13,3 +13,5 @@ pub mod generics_multi_bound;
 pub mod generics_associated_type;
 pub mod trait_intro;
 pub mod trait_dyn;
+// pub mod trait_overload_operator;
+pub mod trait_iterator;
