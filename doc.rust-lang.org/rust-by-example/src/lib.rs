@@ -17,3 +17,7 @@ pub mod trait_dyn;
 pub mod trait_iterator;
 pub mod trait_supertraits;
 pub mod macro_rules_all;
+pub mod error_handling_result;
+pub mod error_handling_result_map;
+pub mod error_handling_early_return;
+// pub mod error_handling_multi_define;
