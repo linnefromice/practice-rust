@@ -40,7 +40,7 @@ fn collect_tasks(mut file: &File) -> Result<Vec<Task>, io::Error> {
 
 pub fn add_task(journal_path: PathBuf, task: Task) -> Result<(), io::Error> {
     // Open the file.
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
@@ -58,7 +58,7 @@ pub fn add_task(journal_path: PathBuf, task: Task) -> Result<(), io::Error> {
 
 pub fn complete_task(journal_path: PathBuf, task_position: usize) -> Result<(), io::Error> {
     // Open the file.
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
         .read(true)
         .write(true)
         .open(journal_path)?;
