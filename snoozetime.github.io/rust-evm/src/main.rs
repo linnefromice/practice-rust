@@ -1,5 +1,7 @@
 use std::{io::{Error, Read}, fs::File, num::ParseIntError};
 
+use ethereum_types::U256;
+
 fn decode(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..(s.len()-1))
         .step_by(2)
@@ -34,6 +36,7 @@ impl Opcode {
 struct Vm {
     code: Vec<u8>, // smart contract code
     pc: usize,
+    stack: Vec<U256>,
 }
 
 impl Vm {
@@ -42,7 +45,7 @@ impl Vm {
         let mut buffer = String::new();
         f.read_to_string(&mut buffer)?;
         let code = decode(&buffer).unwrap();
-        Ok(Vm { code, pc: 0 })
+        Ok(Vm { code, pc: 0, stack: Vec::new() })
     }
 
     fn next(&mut self) -> Option<Opcode> {
@@ -78,19 +81,67 @@ impl Vm {
             _ => { self.pc += 1; None }
         }
     }
-}
 
-fn run() -> Result<(), Error> {
-    let filename = "bytecode-addtion";
-    let mut vm = Vm::new_from_file(&filename).unwrap();
+    fn interpret(&mut self) {
+        let maybe_op = self.next();
 
-    loop {
-        match vm.next() {
-            Some(Opcode::EOF) => break,
+        match &maybe_op {
             Some(x) => x.describe(),
             None => {}
         }
+
+        match &maybe_op {
+            Some(x) => {
+                match x {
+                    Opcode::PUSH1(_, value) => {
+                        self.stack.push(U256::from(*value));
+                    },
+                    Opcode::ADD(_) => {
+                        let v1 = self.stack.pop().unwrap();
+                        let v2 = self.stack.pop().unwrap();
+                        self.stack.push(v1 + v2);
+                    },
+                    _ => {}
+                }
+            },
+            None => {}
+        }
     }
+
+    fn print_stack(&self) {
+        self.stack
+            .iter()
+            .enumerate()
+            .rev()
+            .for_each(|(i, x)| {
+                let mut bytes = vec![0;32];
+                x.to_big_endian(&mut bytes);
+                println!("|{}:\t{:?}|", i, bytes)
+            })
+    }
+}
+
+fn run() -> Result<(), Error> {
+    let filename = "bytecode-add";
+    let mut vm = Vm::new_from_file(&filename).unwrap();
+
+    // -> fn debug
+    // loop {
+    //     match vm.next() {
+    //         Some(Opcode::EOF) => break,
+    //         Some(x) => x.describe(),
+    //         None => {}
+    //     }
+    // }
+
+    // -> fn interpret
+    loop {
+        vm.interpret();
+        if vm.pc >= vm.code.len() {
+            break;
+        }
+    }
+    vm.print_stack();
 
     Ok(())
 }
