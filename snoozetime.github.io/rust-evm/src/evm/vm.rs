@@ -13,16 +13,20 @@ fn decode(s: &str) -> Result<Vec<u8>, ParseIntError> {
 pub struct Vm {
     code: Vec<u8>, // smart contract code
     pc: usize,
-    stack: Vec<U256>,
+    pub stack: Vec<U256>,
 }
 
 impl Vm {
+    pub fn new(binary: Vec<u8>) -> Vm {
+        Vm { code: binary, pc: 0, stack: Vec::new() }
+    }
+
     pub fn new_from_file(filename: &str) -> Result<Vm, Error> {
         let mut f = File::open(filename)?;
         let mut buffer = String::new();
         f.read_to_string(&mut buffer)?;
         let code = decode(&buffer).unwrap();
-        Ok(Vm { code, pc: 0, stack: Vec::new() })
+        Ok(Vm::new(code))
     }
 
     fn next(&mut self) -> Option<Opcode> {
@@ -59,7 +63,7 @@ impl Vm {
         }
     }
 
-    fn interpret(&mut self) {
+    pub fn interpret(&mut self) {
         let maybe_op = self.next();
 
         match &maybe_op {
