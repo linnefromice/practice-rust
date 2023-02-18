@@ -67,6 +67,10 @@ impl Vm {
                 self.pc += 3;
                 Some(Opcode::PUSH2(addr, value0, value1))
             },
+            0xbb => {
+                self.pc += 1;
+                Some(Opcode::PRINT(addr))
+            },
             _ => { self.pc += 1; None }
         }
     }
@@ -105,6 +109,12 @@ impl Vm {
                         if !cond.is_zero() {
                             self.pc = then_addr.as_u64() as usize;
                         }
+                    },
+                    Opcode::PRINT(_addr) => {
+                        let v = self.stack.pop().unwrap();
+                        let mut bytes = vec![0;32];
+                        v.to_big_endian(&mut bytes);
+                        println!("PRINT\t{:?}|", bytes)
                     },
                     _ => {}
                 }
