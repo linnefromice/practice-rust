@@ -78,6 +78,7 @@ impl Vm {
     pub fn interpret(&mut self) {
         let maybe_op = self.next();
 
+        // for debug
         match &maybe_op {
             Some(x) => x.describe(),
             None => {}
@@ -86,6 +87,9 @@ impl Vm {
         match &maybe_op {
             Some(x) => {
                 match x {
+                    Opcode::STOP(_) => {
+                        self.pc = self.code.len(); // temp: use vm.at_end?
+                    },
                     Opcode::PUSH1(_, value) => {
                         self.stack.push(U256::from(*value));
                     },
