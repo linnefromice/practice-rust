@@ -48,6 +48,14 @@ impl Vm {
                 self.pc += 1;
                 Some(Opcode::MUL(addr))
             },
+            0x12 => {
+                self.pc += 1;
+                Some(Opcode::SLT(addr))
+            },
+            0x57 => {
+                self.pc += 1;
+                Some(Opcode::JUMPI(addr))
+            },
             0x60 => {
                 let value = self.code[self.pc+1];
                 self.pc += 2;
@@ -81,6 +89,22 @@ impl Vm {
                         let v1 = self.stack.pop().unwrap();
                         let v2 = self.stack.pop().unwrap();
                         self.stack.push(v1 + v2);
+                    },
+                    Opcode::SLT(_) => {
+                        let lhs = self.stack.pop().unwrap();
+                        let rhs = self.stack.pop().unwrap();
+                        if lhs < rhs {
+                            self.stack.push(U256::from(0x01));
+                        } else {
+                            self.stack.push(U256::from(0x00));
+                        }
+                    },
+                    Opcode::JUMPI(_) => {
+                        let then_addr = self.stack.pop().unwrap();
+                        let cond = self.stack.pop().unwrap();
+                        if !cond.is_zero() {
+                            self.pc = then_addr.as_u64() as usize;
+                        }
                     },
                     _ => {}
                 }
