@@ -1,4 +1,4 @@
-use std::{num::ParseIntError, io::{Error, Read}, fs::File};
+use std::{num::ParseIntError, io::{Error, Read, self}, fs::File};
 use ethereum_types::U256;
 
 use crate::opcode::Opcode;
@@ -150,14 +150,28 @@ impl Vm {
                 println!("|{}:\t{:?}|", i, bytes)
             })
     }
+
+    fn print_debug(&self) {
+        println!("pc:{}\n", self.pc);
+        println!("Stack:");
+        self.print_stack();
+    }
 }
 
 pub fn debug(vm: &mut Vm) {
     loop {
-        match vm.next() {
-            Some(Opcode::EOF) => break,
-            Some(x) => x.describe(),
-            None => {}
+        if vm.at_end {
+            break;
+        }
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).ok().expect("Couldn't read line");
+
+        match input.as_str() {
+            "c\n" => vm.interpret(),
+            "s\n" => vm.print_debug(),
+            "q\n" => break,
+            _ => println!("Please type either c, s or q"),
         }
     }
 }
