@@ -1,6 +1,4 @@
-extern crate uint;
-
-use self::uint::U256;
+use ethereum_types::U256;
 
 pub struct Memory {
     data: Vec<u8>,

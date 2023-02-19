@@ -3,6 +3,8 @@ use ethereum_types::U256;
 
 use crate::opcode::Opcode;
 
+use super::memory::Memory;
+
 fn decode(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..(s.len()-1))
         .step_by(2)
@@ -14,12 +16,13 @@ pub struct Vm {
     code: Vec<u8>, // smart contract code
     pc: usize,
     pub stack: Vec<U256>,
+    mem: Memory,
     at_end: bool
 }
 
 impl Vm {
     pub fn new(binary: Vec<u8>) -> Vm {
-        Vm { code: binary, pc: 0, stack: Vec::new(), at_end: false }
+        Vm { code: binary, pc: 0, stack: Vec::new(), mem: Memory::new(), at_end: false }
     }
 
     pub fn new_from_file(filename: &str) -> Result<Vm, Error> {
@@ -52,6 +55,18 @@ impl Vm {
             0x12 => {
                 self.pc += 1;
                 Some(Opcode::SLT(addr))
+            },
+            0x51 => {
+                self.pc += 1;
+                Some(Opcode::MLOAD(addr))
+            },
+            0x52 => {
+                self.pc += 1;
+                Some(Opcode::MSTORE(addr))
+            },
+            0x53 => {
+                self.pc += 1;
+                Some(Opcode::MSTORE8(addr))
             },
             0x56 => {
                 self.pc += 1;
@@ -123,6 +138,21 @@ impl Vm {
                             self.stack.push(U256::from(0x00));
                         }
                     },
+                    Opcode::MLOAD(_) => {
+                        let offset = self.stack.pop().unwrap();
+                        let loaded_value = self.mem.get_word(offset.as_u64() as usize);
+                        self.stack.push(loaded_value);
+                    }
+                    Opcode::MSTORE(_) => {
+                        let offset = self.stack.pop().unwrap();
+                        let w = self.stack.pop().unwrap();
+                        self.mem.set_word(offset.as_u64() as usize, w);
+                    }
+                    Opcode::MSTORE8(_) => {
+                        let offset = self.stack.pop().unwrap();
+                        let b = self.stack.pop().unwrap().byte(31);
+                        self.mem.set_byte(offset.as_u64() as usize, b);
+                    }
                     Opcode::JUMP(_) => {
                         let jump_location = self.stack.pop().unwrap();
                         self.pc = jump_location.as_u64() as usize;
