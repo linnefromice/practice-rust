@@ -53,6 +53,10 @@ impl Vm {
                 self.pc += 1;
                 Some(Opcode::SLT(addr))
             },
+            0x56 => {
+                self.pc += 1;
+                Some(Opcode::JUMP(addr))
+            },
             0x57 => {
                 self.pc += 1;
                 Some(Opcode::JUMPI(addr))
@@ -108,6 +112,10 @@ impl Vm {
                             self.stack.push(U256::from(0x00));
                         }
                     },
+                    Opcode::JUMP(_) => {
+                        let jump_location = self.stack.pop().unwrap();
+                        self.pc = jump_location.as_u64() as usize;
+                    }
                     Opcode::JUMPI(_) => {
                         let then_addr = self.stack.pop().unwrap();
                         let cond = self.stack.pop().unwrap();
