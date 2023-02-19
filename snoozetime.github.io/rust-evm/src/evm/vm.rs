@@ -62,15 +62,14 @@ impl Vm {
                 Some(Opcode::JUMPI(addr))
             },
             0x60 => {
-                let value = self.code[self.pc+1];
+                let value = self.extract_u256(1);
                 self.pc += 2;
                 Some(Opcode::PUSH1(addr, value))
             },
             0x61 => {
-                let value0 = self.code[self.pc+1];
-                let value1 = self.code[self.pc+2];
+                let value = self.extract_u256(2);
                 self.pc += 3;
-                Some(Opcode::PUSH2(addr, value0, value1))
+                Some(Opcode::PUSH2(addr, value))
             },
             0xbb => {
                 self.pc += 1;
@@ -78,6 +77,15 @@ impl Vm {
             },
             _ => { self.pc += 1; None }
         }
+    }
+
+    fn extract_u256(&mut self, to_extract: usize) -> U256 {
+        let mut bytes = vec![0;32];
+        for i in 0..to_extract {
+            let value = self.code[self.pc+i+1];
+            bytes[32-to_extract+i] = value;
+        }
+        U256::from_big_endian(&bytes)
     }
 
     pub fn interpret(&mut self) {
@@ -96,6 +104,9 @@ impl Vm {
                         self.at_end = true;
                     },
                     Opcode::PUSH1(_, value) => {
+                        self.stack.push(U256::from(*value));
+                    },
+                    Opcode::PUSH2(_, value) => {
                         self.stack.push(U256::from(*value));
                     },
                     Opcode::ADD(_) => {
