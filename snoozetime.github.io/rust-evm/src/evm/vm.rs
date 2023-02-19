@@ -14,11 +14,12 @@ pub struct Vm {
     code: Vec<u8>, // smart contract code
     pc: usize,
     pub stack: Vec<U256>,
+    at_end: bool
 }
 
 impl Vm {
     pub fn new(binary: Vec<u8>) -> Vm {
-        Vm { code: binary, pc: 0, stack: Vec::new() }
+        Vm { code: binary, pc: 0, stack: Vec::new(), at_end: false }
     }
 
     pub fn new_from_file(filename: &str) -> Result<Vm, Error> {
@@ -88,7 +89,7 @@ impl Vm {
             Some(x) => {
                 match x {
                     Opcode::STOP(_) => {
-                        self.pc = self.code.len(); // temp: use vm.at_end?
+                        self.at_end = true;
                     },
                     Opcode::PUSH1(_, value) => {
                         self.stack.push(U256::from(*value));
@@ -120,6 +121,9 @@ impl Vm {
                         v.to_big_endian(&mut bytes);
                         println!("PRINT\t{:?}|", bytes)
                     },
+                    Opcode::EOF => {
+                        self.at_end = true;
+                    }
                     _ => {}
                 }
             },
@@ -151,11 +155,8 @@ pub fn debug(vm: &mut Vm) {
 }
 
 pub fn interpret(vm: &mut Vm) {
-    loop {
+    while !vm.at_end {
         vm.interpret();
-        if vm.pc >= vm.code.len() {
-            break;
-        }
     }
     vm.print_stack();
 }
