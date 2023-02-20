@@ -114,6 +114,11 @@ impl Vm {
 
         match &maybe_op {
             Some(x) => {
+                match self.get_new_size(&x) {
+                    Some(n) => self.mem.resize(n),
+                    _ => {}
+                }
+
                 match x {
                     Opcode::STOP(_) => {
                         self.at_end = true;
@@ -178,6 +183,18 @@ impl Vm {
             },
             None => {}
         }
+    }
+
+    fn get_new_size(&self, code: &Opcode) -> Option<usize> {
+        match code {
+            Opcode::MLOAD(_) | Opcode::MSTORE(_) => {
+                Some(self.stack.last().unwrap().as_u64() as usize + 32)
+            }
+            Opcode::MSTORE8(_) => {
+                Some(self.stack.last().unwrap().as_u64() as usize + 1)
+            }
+            _ => None
+        }    
     }
 
     fn print_stack(&self) {
