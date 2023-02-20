@@ -1,3 +1,5 @@
+use super::machine::Machine;
+
 pub struct Instruction<T> {
     pub op_code: usize,
     pub name: String,
@@ -5,7 +7,6 @@ pub struct Instruction<T> {
     pub fun: InstructionFn<T>
 }
 
-pub type Machine<T> = T; // temp: machine
 pub type InstructionFn<T> = fn(machine: &mut Machine<T>, args: &[usize]);
 
 impl<T> Instruction<T> {
