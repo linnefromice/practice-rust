@@ -17,3 +17,35 @@ impl<T> Stack<T> {
         self.0.pop().expect("Unable to pop from empty stack")
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn new() {
+        let stack: Stack<usize> = Stack::new();
+        assert!(stack.is_empty());
+    }
+
+    #[test]
+    fn push() {
+        let mut stack: Stack<usize> = Stack::new();
+        stack.push(13);
+        assert!(!stack.is_empty());
+    }
+
+    #[test]
+    fn pop() {
+        let mut stack: Stack<usize> = Stack::new();
+        stack.push(13);
+        assert_eq!(stack.pop(), 13);
+    }
+
+    #[test]
+    #[should_panic(expected = "empty stack")]
+    fn empty_pop() {
+        let mut stack: Stack<usize> = Stack::new();
+        stack.pop();
+    }
+}
