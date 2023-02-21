@@ -26,6 +26,16 @@ impl<T> InstructionTable<T> {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn symbols(&self) -> Vec<(usize, String)> {
+        let mut result = vec![];
+        self.0.keys().for_each(|key| {
+            let instr = &self.0[key];
+            result.push((instr.op_code, instr.name.clone()));
+        });
+        result.sort_by(|lhs, rhs| lhs.0.cmp(&rhs.0));
+        result
+    }
 }
 
 #[cfg(test)]
