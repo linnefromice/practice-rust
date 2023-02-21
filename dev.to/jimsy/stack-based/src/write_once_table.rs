@@ -40,3 +40,33 @@ impl<T> Table for WriteOnceTable<T> {
         self.0.get(name)
     }
 }
+#[cfg(test)]
+mod test {
+    use crate::table::Table;
+
+    use super::WriteOnceTable;
+
+    #[test]
+    fn new() {
+        let write_once_table: WriteOnceTable<usize> = WriteOnceTable::new();
+        assert!(write_once_table.is_empty());
+    }
+
+    #[test]
+    fn insert() {
+        let mut write_once_table: WriteOnceTable<usize> = WriteOnceTable::new();
+        write_once_table.insert("example", 13);
+        assert!(!write_once_table.is_empty());
+        assert!(write_once_table.contains_key("example"));
+        assert_eq!(*write_once_table.get("example").unwrap(), 13);
+    }
+
+    #[test]
+    #[should_panic(expected = "predefining constant")]
+    fn insert_uniq() {
+        let mut write_once_table: WriteOnceTable<usize> = WriteOnceTable::new();
+        write_once_table.insert("example", 13);
+        assert_eq!(*write_once_table.get("example").unwrap(), 13);
+        write_once_table.insert("example", 13);
+    }
+}
