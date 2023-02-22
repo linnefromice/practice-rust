@@ -25,6 +25,7 @@ impl<T> Table for WriteOnceTable<T> {
     type Item = T;
 
     fn insert(&mut self, name: &str, value: Self::Item) {
+        self.already_exists_guard(name);
         self.0.insert(name.to_string(), value);
     }
 
@@ -62,7 +63,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "predefining constant")]
+    #[should_panic(expected = "redefining constant")]
     fn insert_uniq() {
         let mut write_once_table: WriteOnceTable<usize> = WriteOnceTable::new();
         write_once_table.insert("example", 13);
