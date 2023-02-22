@@ -1,23 +1,29 @@
 use crate::stack::Stack;
 use super::{
     instruction_table::{InstructionTable, self},
-    code::Code
+    code::Code, frame::Frame
 };
 
 pub struct Machine<'a, T> {
     code: Code<T>,
     instruction_table: &'a InstructionTable<T>,
     ip: usize,
-    operand_stack: Stack<T>
+    operand_stack: Stack<T>,
+    call_stack: Stack<Frame>
 }
 
 impl<'a, T> Machine<'a, T> {
     pub fn new(code: Code<T>, instruction_table: &'a InstructionTable<T>) -> Machine<'a, T> {
+        let frame = Frame::new(code.code.len());
+        let mut call_stack = Stack::new();
+        call_stack.push(frame);
+
         Machine {
             code,
             instruction_table,
             ip: 0,
-            operand_stack: Stack::new()
+            operand_stack: Stack::new(),
+            call_stack,
         }
     }
 
@@ -66,6 +72,23 @@ impl<'a, T> Machine<'a, T> {
             .data
             .get(idx)
             .expect(&format!("Constant data is not present at index {}.", idx))
+    }
+
+    pub fn jump(&mut self, label: &str) {
+        self.ip = self
+            .code
+            .get_label_ip(label)
+            .expect(&format!("Attempted to jump to unknown label {}", label));
+    }
+
+    pub fn call(&mut self, label: &str) {
+        self.call_stack.push(Frame::new(self.ip));
+        self.jump(label);
+    }
+
+    pub fn ret(&mut self) {
+        let frame = self.call_stack.pop();
+        self.ip = frame.return_address;
     }
 }
 

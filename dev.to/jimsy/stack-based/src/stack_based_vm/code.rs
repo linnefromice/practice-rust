@@ -9,6 +9,17 @@ pub struct Code<T> {
     pub labels: Vec<(usize, String)>
 }
 
+impl<T> Code<T> {
+    pub fn get_label_ip(&self, name: &str) -> Option<usize> {
+        for label in self.labels.as_slice() {
+            if label.1 == name {
+                return Some(label.0);
+            }
+        }
+        None
+    }
+}
+
 pub struct Builder<'a, T: 'a> {
     pub instruction_table: &'a InstructionTable<T>,
     pub instructions: Vec<usize>,
