@@ -68,3 +68,50 @@ impl<'a, T> Machine<'a, T> {
             .expect(&format!("Constant data is not present at index {}.", idx))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::{stack_based_vm::{instruction_table::InstructionTable, instruction::Instruction, code::Builder}, write_many_table::WriteManyTable};
+
+    fn push(machine: &mut Machine<usize>, args: &[usize]) {
+        let args = &machine.code.data[args[0]];
+        machine.operand_stack.push(*args);
+    }
+
+    fn add(machine: &mut Machine<usize>, _args: &[usize]) {
+        let rhs = machine.operand_pop();
+        let lhs = machine.operand_pop();
+        machine.operand_stack.push(lhs + rhs);
+    }
+
+    fn instruction_table() -> InstructionTable<usize> {
+        let mut it = InstructionTable::new();
+        it.insert(Instruction::new(1, "push", 1, push));
+        it.insert(Instruction::new(2, "add", 0, add));
+        it
+    }
+
+    #[test]
+    fn new() {
+        let it = instruction_table();
+        let builder: Builder<usize> = Builder::new(&it);
+        let machine = Machine::new(Builder::from(builder), &it);
+        assert_eq!(machine.ip, 0);
+        assert!(machine.operand_stack.is_empty());
+    }
+
+    #[test]
+    fn addition_example() {
+        let it = instruction_table();
+        let mut builder = Builder::new(&it);
+        builder.push("push", vec![2]);
+        builder.push("push", vec![3]);
+        builder.push("add", vec![]);
+        let code = Builder::from(builder);
+        let mut machine = Machine::new(code, &it);
+        machine.run();
+        let result = machine.operand_pop();
+        assert_eq!(result, 5);
+    }
+}
