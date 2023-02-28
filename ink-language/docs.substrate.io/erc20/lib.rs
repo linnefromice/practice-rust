@@ -2,7 +2,7 @@
 
 #[ink::contract]
 mod erc20 {
-    use ink::{storage::Mapping, primitives::AccountId};
+    use ink::{storage::Mapping};
 
     #[ink(storage)]
     pub struct Erc20 {
@@ -44,7 +44,7 @@ mod erc20 {
         #[ink(message)]
         pub fn transfer(&mut self, to: AccountId, value: Balance) -> Result<()> {
             let from = self.env().caller();
-            self.transfer_from_to(&from, &to, value);
+            self.transfer_from_to(&from, &to, value)
         }
 
         fn transfer_from_to(
@@ -60,7 +60,7 @@ mod erc20 {
 
             self.balances.insert(&from, &(from_balance - value));
             let to_balance = self.balance_of(*to);
-            self.balances.insert(&to, &(to_balance - value));
+            self.balances.insert(&to, &(to_balance + value));
 
             Ok(())
         }
@@ -95,6 +95,15 @@ mod erc20 {
             assert_eq!(erc20.total_supply(), 100);
             assert_eq!(erc20.balance_of(alice()), 100);
             assert_eq!(erc20.balance_of(bob()), 0);
+        }
+
+        #[ink::test]
+        fn transfer_works() {
+            let mut contract = Erc20::new(100);
+            assert_eq!(contract.balance_of(alice()), 100);
+            assert!(contract.transfer(bob(), 10).is_ok());
+            assert_eq!(contract.balance_of(bob()), 10);
+            assert!(contract.transfer(bob(), 100).is_err());
         }
     }
 }
