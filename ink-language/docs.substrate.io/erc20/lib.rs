@@ -7,7 +7,8 @@ mod erc20 {
     #[ink(storage)]
     pub struct Erc20 {
         total_supply: Balance,
-        balances: Mapping<AccountId, Balance>
+        balances: Mapping<AccountId, Balance>,
+        allowances: Mapping<(AccountId, AccountId), Balance>
     }
 
     #[ink(event)]
@@ -19,10 +20,20 @@ mod erc20 {
         value: Balance,
     }
 
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        spender: AccountId,
+        value: Balance,
+    }
+
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
         InsufficientBalance,
+        InsufficientAllowance
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
@@ -42,7 +53,8 @@ mod erc20 {
 
             Self {
                 total_supply,
-                balances
+                balances,
+                allowances: Mapping::default(),
             }
         }
 
@@ -85,6 +97,26 @@ mod erc20 {
 
             Ok(())
         }
+
+        #[ink(message)]
+        pub fn approve(&mut self, spender: AccountId, value: Balance) -> Result<()> {
+            let owner = Self::env().caller();
+            self.allowances.insert(&(owner, spender), &value);
+
+            Self::env().emit_event(Approval {
+                owner,
+                spender,
+                value,
+            });
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
+            self.allowances.get((owner, spender)).unwrap_or_default()
+        }
+
     }
 
     #[cfg(test)]
