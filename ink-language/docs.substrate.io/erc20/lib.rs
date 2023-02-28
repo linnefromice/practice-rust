@@ -2,13 +2,21 @@
 
 #[ink::contract]
 mod erc20 {
-    use ink::storage::Mapping;
+    use ink::{storage::Mapping, primitives::AccountId};
 
     #[ink(storage)]
     pub struct Erc20 {
         total_supply: Balance,
         balances: Mapping<AccountId, Balance>
     }
+
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum Error {
+        InsufficientBalance,
+    }
+
+    pub type Result<T> = core::result::Result<T, Error>;
 
     impl Erc20 {
         #[ink(constructor)]
@@ -31,6 +39,30 @@ mod erc20 {
         #[ink(message)]
         pub fn balance_of(&self, owner: AccountId) -> Balance {
             self.balances.get(owner).unwrap_or_default()
+        }
+
+        #[ink(message)]
+        pub fn transfer(&mut self, to: AccountId, value: Balance) -> Result<()> {
+            let from = self.env().caller();
+            self.transfer_from_to(&from, &to, value);
+        }
+
+        fn transfer_from_to(
+            &mut self,
+            from: &AccountId,
+            to: &AccountId,
+            value: Balance
+        ) -> Result<()> {
+            let from_balance = self.balance_of(*from);
+            if from_balance < value {
+                return Err(Error::InsufficientBalance)
+            }
+
+            self.balances.insert(&from, &(from_balance - value));
+            let to_balance = self.balance_of(*to);
+            self.balances.insert(&to, &(to_balance - value));
+
+            Ok(())
         }
     }
 
