@@ -74,6 +74,21 @@ mod erc20 {
             self.transfer_from_to(&from, &to, value)
         }
 
+        #[ink(message)]
+        pub fn transfer_from(&mut self, from: AccountId, to: AccountId, value: Balance) -> Result<()> {
+            let caller = Self::env().caller();
+            let allowance = self.allowance(from.clone(), caller.clone());
+            if value > allowance {
+                return Err(Error::InsufficientAllowance)
+            }
+
+            self.transfer_from_to(&from, &to, value)?;
+
+            self.allowances.insert(&(from, caller), &(allowance - value));
+
+            Ok(())
+        }
+
         fn transfer_from_to(
             &mut self,
             from: &AccountId,
