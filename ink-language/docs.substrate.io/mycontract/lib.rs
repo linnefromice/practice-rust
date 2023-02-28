@@ -2,30 +2,27 @@
 
 #[ink::contract]
 mod mycontract {
+    use ink::storage::Mapping;
+
     #[ink(storage)]
     pub struct Mycontract {
-        value: bool,
+        my_map: Mapping<AccountId, u32>
     }
 
     impl Mycontract {
         #[ink(constructor)]
-        pub fn new(init_value: bool) -> Self {
-            Self { value: init_value }
-        }
+        pub fn new(count: u32) -> Self {
+            let mut my_map = Mapping::default();
+            let caller = Self::env().caller();
+            my_map.insert(&caller, &count);
 
-        #[ink(constructor)]
-        pub fn default() -> Self {
-            Self::new(Default::default())
-        }
-
-        #[ink(message)]
-        pub fn flip(&mut self) {
-            self.value = !self.value;
+            Self { my_map }
         }
 
         #[ink(message)]
-        pub fn get(&self) -> bool {
-            self.value
+        pub fn get(&self) -> u32 {
+            let caller = Self::env().caller();
+            self.my_map.get(&caller).unwrap_or_default()
         }
     }
 
