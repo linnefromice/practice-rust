@@ -53,7 +53,7 @@ mod incrementer {
         }
 
         #[ink(message)]
-        pub fn remove_mine(&mut self, by: i32) {
+        pub fn remove_mine(&mut self) {
             let caller = self.env().caller();
             self.my_map.remove(&caller);
         }
@@ -84,6 +84,26 @@ mod incrementer {
             assert_eq!(contract.get(), 47);
             contract.inc(-50);
             assert_eq!(contract.get(), -3);
+        }
+        
+        #[ink::test]
+        fn inc_mine_works() {
+            let mut contract = Incrementer::new(11);
+            assert_eq!(contract.get_mine(), 0);
+            contract.inc_mine(5);
+            assert_eq!(contract.get_mine(), 5);
+            contract.inc_mine(5);
+            assert_eq!(contract.get_mine(), 10);
+        }
+
+        #[ink::test]
+        fn remove_mine_works() {
+            let mut contract = Incrementer::new(11);
+            assert_eq!(contract.get_mine(), 0);
+            contract.inc_mine(5);
+            assert_eq!(contract.get_mine(), 5);
+            contract.remove_mine();
+            assert_eq!(contract.get_mine(), 0);
         }
     }
 
