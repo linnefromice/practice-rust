@@ -10,6 +10,15 @@ mod erc20 {
         balances: Mapping<AccountId, Balance>
     }
 
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)]
+        from: Option<AccountId>,
+        #[ink(topic)]
+        to: Option<AccountId>,
+        value: Balance,
+    }
+
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
@@ -24,6 +33,12 @@ mod erc20 {
             let mut balances = Mapping::default();
             let caller = Self::env().caller();
             balances.insert(caller, &total_supply);
+
+            Self::env().emit_event(Transfer {
+                from: None,
+                to: Some(caller),
+                value: total_supply,
+            });
 
             Self {
                 total_supply,
@@ -61,6 +76,12 @@ mod erc20 {
             self.balances.insert(&from, &(from_balance - value));
             let to_balance = self.balance_of(*to);
             self.balances.insert(&to, &(to_balance + value));
+
+            Self::env().emit_event(Transfer {
+                from: Some(*from),
+                to: Some(*to),
+                value,
+            });
 
             Ok(())
         }
