@@ -173,5 +173,30 @@ mod erc20 {
             assert_eq!(contract.balance_of(bob()), 10);
             assert!(contract.transfer(bob(), 100).is_err());
         }
+
+        #[ink::test]
+        fn tranfer_from_works() {
+            let mut contract = Erc20::new(100);
+            assert_eq!(contract.balance_of(alice()), 100);
+            contract.approve(alice(), 20).unwrap();
+            contract.transfer_from(alice(), bob(), 10).unwrap();
+            assert_eq!(contract.balance_of(bob()), 10);
+        }
+
+        #[ink::test]
+        fn allowances_works() {
+            let mut contract = Erc20::new(100);
+            assert_eq!(contract.balance_of(alice()), 100);
+            contract.approve(alice(), 200).unwrap();
+            assert_eq!(contract.allowance(alice(), alice()), 200);
+
+            contract.transfer_from(alice(), bob(), 50).unwrap();
+            assert_eq!(contract.balance_of(bob()), 50);
+            assert_eq!(contract.allowance(alice(), alice()), 150);
+
+            assert!(contract.transfer_from(alice(), bob(), 100).is_err());
+            assert_eq!(contract.balance_of(bob()), 50);
+            assert_eq!(contract.allowance(alice(), alice()), 150);
+        }
     }
 }
