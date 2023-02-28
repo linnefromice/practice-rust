@@ -2,6 +2,8 @@
 
 #[ink::contract]
 mod incrementer {
+    use ink::storage::Mapping;
+
 
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
@@ -9,27 +11,33 @@ mod incrementer {
     #[ink(storage)]
     pub struct Incrementer {
         value: i32,
+        my_map: Mapping<AccountId, i32>,
     }
 
     impl Incrementer {
         /// Constructor that initializes the `bool` value to the given `init_value`.
         #[ink(constructor)]
         pub fn new(init_value: i32) -> Self {
-            Self { value: init_value }
-        }
+            let mut my_map = Mapping::default();
+            let caller = Self::env().caller();
+            my_map.insert(&caller, &0);
 
-        /// Constructor that initializes the `bool` value to `false`.
-        ///
-        /// Constructors can delegate to other constructors.
-        #[ink(constructor)]
-        pub fn default() -> Self {
-            Self::new(Default::default())
+            Self {
+                value: init_value,
+                my_map
+            }
         }
 
         /// Simply returns the current value of our `bool`.
         #[ink(message)]
         pub fn get(&self) -> i32 {
             self.value
+        }
+
+        #[ink(message)]
+        pub fn get_mine(&self) -> i32 {
+            let caller = self.env().caller();
+            self.my_map.get(&caller).unwrap_or_default()
         }
 
         #[ink(message)]
@@ -48,9 +56,10 @@ mod incrementer {
 
         /// We test if the default constructor does its job.
         #[ink::test]
-        fn default_works() {
-            let incrementer = Incrementer::default();
-            assert_eq!(incrementer.get(), 0);
+        fn my_map_works() {
+            let incrementer = Incrementer::new(11);
+            assert_eq!(incrementer.get(), 11);
+            assert_eq!(incrementer.get_mine(), 0);
         }
 
         /// We test a simple use case of our contract.
