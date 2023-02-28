@@ -44,6 +44,19 @@ mod incrementer {
         pub fn inc(&mut self, by: i32) {
             self.value += by;
         }
+
+        #[ink(message)]
+        pub fn inc_mine(&mut self, by: i32) {
+            let caller = self.env().caller();
+            let my_value = self.get_mine();
+            self.my_map.insert(caller, &(my_value + by));
+        }
+
+        #[ink(message)]
+        pub fn remove_mine(&mut self, by: i32) {
+            let caller = self.env().caller();
+            self.my_map.remove(&caller);
+        }
     }
 
     /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
