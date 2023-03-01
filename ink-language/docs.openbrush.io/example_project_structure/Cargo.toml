@@ -1,5 +1,5 @@
 [package]
-name = "example_project_structure"
+name = "monorepo_project"
 version = "0.1.0"
 authors = ["[your_name] <[your_email]>"]
 edition = "2021"
@@ -16,6 +16,7 @@ openbrush = { git = "https://github.com/727-Ventures/openbrush-contracts", versi
 ink_e2e = "4.0.0"
 
 [lib]
+name = "monorepo_project"
 path = "lib.rs"
 
 [features]
