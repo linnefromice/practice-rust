@@ -4,6 +4,15 @@
 mod erc20 {
     use ink::{storage::Mapping};
 
+    #[ink::trait_definition]
+    pub trait BaseErc20 {    
+        #[ink(message)]
+        fn total_supply(&self) -> Balance;
+
+        #[ink(message)]
+        fn balance_of(&self, owner: AccountId) -> Balance;
+    }
+
     #[ink(storage)]
     pub struct Erc20 {
         total_supply: Balance,
@@ -38,6 +47,18 @@ mod erc20 {
 
     pub type Result<T> = core::result::Result<T, Error>;
 
+    impl BaseErc20 for Erc20 {
+        #[ink(message)]
+        fn total_supply(&self) -> Balance {
+            self.total_supply
+        }
+
+        #[ink(message)]
+        fn balance_of(&self, owner: AccountId) -> Balance {
+            self.balances.get(owner).unwrap_or_default()
+        }
+    }
+
     impl Erc20 {
         #[ink(constructor)]
         pub fn new(total_supply: Balance) -> Self {
@@ -56,16 +77,6 @@ mod erc20 {
                 balances,
                 allowances: Mapping::default(),
             }
-        }
-
-        #[ink(message)]
-        pub fn total_supply(&self) -> Balance {
-            self.total_supply
-        }
-
-        #[ink(message)]
-        pub fn balance_of(&self, owner: AccountId) -> Balance {
-            self.balances.get(owner).unwrap_or_default()
         }
 
         #[ink(message)]
