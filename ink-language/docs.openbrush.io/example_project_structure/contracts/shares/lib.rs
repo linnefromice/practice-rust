@@ -3,12 +3,16 @@
 
 #[openbrush::contract]
 pub mod shares {
+    use monorepo_project::traits::shares::*;
     use openbrush::traits::{Storage, String};
     use openbrush::{
+        modifiers,
         contracts::{
             ownable::*,
             psp22::extensions::{
                 metadata::*,
+                mintable::*,
+                burnable::*,
             }
         }
     };
@@ -23,6 +27,28 @@ pub mod shares {
         #[storage_field]
         metadata: metadata::Data,
     }
+
+    impl PSP22 for SharesContract {}
+    impl Ownable for SharesContract {}
+    impl PSP22Metadata for SharesContract {}
+    impl PSP22Mintable for SharesContract {
+        // override
+        #[ink(message)]
+        #[modifiers(only_owner)]
+        fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+            self._mint_to(account, amount)
+        }
+    }
+    impl PSP22Burnable for SharesContract {
+        // override
+        #[ink(message)]
+        #[modifiers(only_owner)]
+        fn burn(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+            self._burn_from(account, amount)
+        }
+    }
+    // It forces the compiler to check that you implemented all super traits
+    impl Shares for SharesContract {}
 
     impl SharesContract {
         #[ink(constructor)]
@@ -41,15 +67,6 @@ pub mod shares {
                     _reserved: None,
                 },
             }
-        }
-
-        #[ink(message)]
-        pub fn share_name(&self) -> Option<String> {
-            self.metadata.token_name()
-        }
-        #[ink(message)]
-        pub fn share_symbol(&self) -> Option<String> {
-            self.metadata.token_symbol()
         }
     }
 }
