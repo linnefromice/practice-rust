@@ -33,13 +33,18 @@ mod simple_contract {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use sp_core::Pair;
         use ink::env::DefaultEnvironment;
+        use ink_e2e::SubstrateConfig;
 
         fn default_accounts() -> ink::env::test::DefaultAccounts<DefaultEnvironment> {
             ink::env::test::default_accounts::<DefaultEnvironment>()
         }
         fn get_account_balance(id: AccountId) -> Balance {
             ink::env::test::get_account_balance::<DefaultEnvironment>(id).unwrap()
+        }
+        fn set_account_balance(id: AccountId, balance: Balance) {
+            ink::env::test::set_account_balance::<DefaultEnvironment>(id, balance);
         }
 
         #[ink::test]
@@ -103,6 +108,27 @@ mod simple_contract {
 
             ink::env::test::set_account_balance::<DefaultEnvironment>(accounts.charlie, 50_000);
             assert_eq!(get_account_balance(accounts.charlie), 50_000);
+        }
+
+        #[ink::test]
+        fn env_new_account() {
+            let seed =
+			    "remember fiber forum demise paper uniform squirrel feel access exclude casual effort";
+            let valid_public = <sp_core::sr25519::Pair as sp_core::Pair>::from_string_with_seed(seed, None).unwrap();
+            ink::env::debug_println!("{:?}", valid_public.0.public());
+            ink::env::debug_println!("{:?}", valid_public.1.unwrap());
+            let new_signer = ink_e2e::PairSigner::<
+                SubstrateConfig,
+                sp_core::sr25519::Pair
+            >::new(valid_public.0);
+            // ink::env::debug_println!("{:?}", new_signer.account_id());
+            let new_account_id = AccountId::try_from(new_signer.account_id().0).unwrap();
+            ink::env::debug_println!("{:?}", new_account_id);
+
+            set_account_balance(new_account_id, 0);
+            assert_eq!(get_account_balance(new_account_id), 0);
+            set_account_balance(new_account_id, 25_000);
+            assert_eq!(get_account_balance(new_account_id), 25_000);
         }
     }
 }
