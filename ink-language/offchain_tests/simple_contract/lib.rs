@@ -123,15 +123,15 @@ mod simple_contract {
             let seed =
 			    "remember fiber forum demise paper uniform squirrel feel access exclude casual effort";
             let valid_public = <sp_core::sr25519::Pair as sp_core::Pair>::from_string_with_seed(seed, None).unwrap();
-            ink::env::debug_println!("{:?}", valid_public.0.public());
-            ink::env::debug_println!("{:?}", valid_public.1.unwrap());
+            // ink::env::debug_println!("{:?}", valid_public.0.public());
+            // ink::env::debug_println!("{:?}", valid_public.1.unwrap());
             let new_signer = ink_e2e::PairSigner::<
                 SubstrateConfig,
                 sp_core::sr25519::Pair
             >::new(valid_public.0);
             // ink::env::debug_println!("{:?}", new_signer.account_id());
             let new_account_id = AccountId::try_from(new_signer.account_id().0).unwrap();
-            ink::env::debug_println!("{:?}", new_account_id);
+            // ink::env::debug_println!("{:?}", new_account_id);
 
             set_account_balance(new_account_id, 0);
             assert_eq!(get_account_balance(new_account_id), 0);
@@ -157,6 +157,36 @@ mod simple_contract {
             ink::env::test::transfer_in::<DefaultEnvironment>(7_500);
             assert_eq!(get_account_balance(signer1_id), 2_500);
             assert_eq!(get_account_balance(signer2_id), 12_500);
+        }
+
+        #[ink::test]
+        fn env_pay_with_call() {
+            use ink::codegen::Env;
+
+            let accounts = default_accounts();
+            let signer1 = create_signer();
+            let signer2 = create_signer();
+            let signer1_id = AccountId::try_from(signer1.account_id().0).unwrap();
+            let signer2_id = AccountId::try_from(signer2.account_id().0).unwrap();
+            set_account_balance(signer1_id, 0);
+            set_account_balance(signer2_id, 1_000_000);
+
+            ink::env::test::set_caller::<DefaultEnvironment>(signer1_id);
+            let contract = SimpleContract::default();
+            
+            // ink::env::debug_println!("{:?}", signer1_id);
+            // ink::env::debug_println!("{:?}", signer2_id);
+            // ink::env::debug_println!("{:?}", contract.env().account_id());
+            // ink::env::debug_println!("{:?}", accounts.alice);
+            assert_eq!(get_account_balance(contract.env().account_id()), 1_000_000);
+            assert_eq!(get_account_balance(accounts.alice), 1_000_000); // why same id?
+
+            ink::env::test::set_caller::<DefaultEnvironment>(signer2_id);
+            ink::env::pay_with_call!(contract.caller(), 1_000);
+
+            assert_eq!(get_account_balance(signer2_id), 999_000);
+            assert_eq!(get_account_balance(accounts.alice), 1_001_000);
+            assert_eq!(get_account_balance(contract.env().account_id()), 1_001_000); // why same id?
         }
     }
 }
