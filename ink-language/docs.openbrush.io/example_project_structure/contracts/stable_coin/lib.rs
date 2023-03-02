@@ -3,10 +3,11 @@
 
 #[openbrush::contract]
 pub mod token {
-    // use monorepo_project::traits::stable_coin::*;
+    use monorepo_project::traits::stable_coin::*;
     use openbrush::{
         contracts::psp22::extensions::{
             metadata::*,
+            mintable::*,
         },
         traits::{Storage, String},
     };
@@ -19,6 +20,11 @@ pub mod token {
         #[storage_field]
         metadata: metadata::Data,
     }
+
+    impl PSP22 for StableCoinContract {}
+    impl PSP22Metadata for StableCoinContract {}
+    impl PSP22Mintable for StableCoinContract {}
+    impl StableCoin for StableCoinContract {}
 
     impl StableCoinContract {
         #[ink(constructor)]
@@ -36,11 +42,6 @@ pub mod token {
                     _reserved: None,
                 },
             }
-        }
-
-        #[ink(message)]
-        pub fn decimals(&self) -> u8 {
-            self.metadata.token_decimals()
         }
     }
 }
