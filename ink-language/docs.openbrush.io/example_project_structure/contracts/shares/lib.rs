@@ -68,5 +68,43 @@ pub mod shares {
                 },
             }
         }
+
+        #[ink(message)]
+        pub fn caller(&self) -> AccountId {
+            self.env().caller()
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn default_accounts() -> ink::env::test::DefaultAccounts<ink::env::DefaultEnvironment> {
+            ink::env::test::default_accounts::<ink::env::DefaultEnvironment>()
+        }
+
+        #[ink::test]
+        fn new_works() {
+            let coin = SharesContract::new(
+                Some(String::from("sample coin")),
+                Some(String::from("SAMPLE")),
+                18,
+            );
+
+            assert_eq!(coin.token_name().unwrap(), String::from("sample coin"));
+            assert_eq!(coin.token_symbol().unwrap(), String::from("SAMPLE"));
+            assert_eq!(coin.total_supply(), 0);
+        }
+
+        #[ink::test]
+        fn mint_works() {
+            let accounts = default_accounts();
+            assert_eq!(accounts.alice, AccountId::from([0x01; 32]));
+            assert_eq!(accounts.bob, AccountId::from([0x02; 32]));
+            assert_eq!(accounts.charlie, AccountId::from([0x03; 32]));
+            ink::env::debug_println!("{:?}", accounts.alice);
+            ink::env::debug_println!("{:?}", accounts.bob);
+            ink::env::debug_println!("{:?}", accounts.charlie);
+        }
     }
 }
