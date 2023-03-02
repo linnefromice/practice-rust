@@ -44,4 +44,22 @@ pub mod token {
             }
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[ink::test]
+        fn new_works() {
+            let coin = StableCoinContract::new(
+                Some(String::from("sample coin")),
+                Some(String::from("SAMPLE")),
+                18,
+            );
+
+            assert_eq!(coin.token_name().unwrap(), String::from("sample coin"));
+            assert_eq!(coin.token_symbol().unwrap(), String::from("SAMPLE"));
+            assert_eq!(coin.total_supply(), 0);
+        }
+    }
 }
