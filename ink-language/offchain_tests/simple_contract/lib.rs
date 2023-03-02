@@ -38,11 +38,25 @@ mod simple_contract {
         fn default_accounts() -> ink::env::test::DefaultAccounts<DefaultEnvironment> {
             ink::env::test::default_accounts::<DefaultEnvironment>()
         }
+        fn get_account_balance(id: AccountId) -> Balance {
+            ink::env::test::get_account_balance::<DefaultEnvironment>(id).unwrap()
+        }
 
         #[ink::test]
         fn default_works() {
             let contract = SimpleContract::default();
             assert_eq!(contract.get(), 0);
+        }
+
+        #[ink::test]
+        fn env_events_after_instanced_contract() {
+            let _ = SimpleContract::default();
+
+            let events = ink::env::test::recorded_events();
+            assert_eq!(events.count(), 0);
+            // let last_event = events.last().unwrap();
+            // ink::env::debug_println!("{:?}", last_event.topics);
+            // ink::env::debug_println!("{:?}", last_event.data);
         }
 
         #[ink::test]
@@ -73,6 +87,22 @@ mod simple_contract {
 
             ink::env::test::set_caller::<DefaultEnvironment>(accounts.charlie);
             assert_eq!(contract.caller(), accounts.charlie);
+        }
+
+        #[ink::test]
+        fn env_get_account_balance() {
+            let accounts = default_accounts();
+            assert_eq!(get_account_balance(accounts.alice), 1_000_000);
+            assert_eq!(get_account_balance(accounts.bob), 1_000);
+            assert_eq!(get_account_balance(accounts.charlie), 1_000);
+
+            let _ = SimpleContract::default();
+            assert_eq!(get_account_balance(accounts.alice), 1_000_000);
+            assert_eq!(get_account_balance(accounts.bob), 1_000);
+            assert_eq!(get_account_balance(accounts.charlie), 1_000);
+
+            ink::env::test::set_account_balance::<DefaultEnvironment>(accounts.charlie, 50_000);
+            assert_eq!(get_account_balance(accounts.charlie), 50_000);
         }
     }
 }
