@@ -46,6 +46,14 @@ mod simple_contract {
         fn set_account_balance(id: AccountId, balance: Balance) {
             ink::env::test::set_account_balance::<DefaultEnvironment>(id, balance);
         }
+        fn create_signer_from_seed(seed: &str) -> ink_e2e::PairSigner::<SubstrateConfig, sp_core::sr25519::Pair> {
+            let valid_public = <sp_core::sr25519::Pair as sp_core::Pair>::from_string_with_seed(seed, None).unwrap();
+            ink_e2e::PairSigner::<SubstrateConfig, sp_core::sr25519::Pair>::new(valid_public.0)
+        }
+        fn create_signer() -> ink_e2e::PairSigner::<SubstrateConfig, sp_core::sr25519::Pair> {
+            let pair = <sp_core::sr25519::Pair as sp_core::Pair>::generate();
+            ink_e2e::PairSigner::<SubstrateConfig, sp_core::sr25519::Pair>::new(pair.0)
+        }
 
         #[ink::test]
         fn default_works() {
@@ -129,6 +137,26 @@ mod simple_contract {
             assert_eq!(get_account_balance(new_account_id), 0);
             set_account_balance(new_account_id, 25_000);
             assert_eq!(get_account_balance(new_account_id), 25_000);
+        }
+
+        #[ink::test]
+        fn env_transfer_in() {
+            let seed1 =
+                "remember fiber forum demise paper uniform squirrel feel access exclude casual effort";
+
+            let signer1 = create_signer_from_seed(seed1);
+            let signer2 = create_signer();
+            let signer1_id = AccountId::try_from(signer1.account_id().0).unwrap();
+            let signer2_id = AccountId::try_from(signer2.account_id().0).unwrap();
+            set_account_balance(signer1_id, 10_000);
+            set_account_balance(signer2_id, 5_000);
+            assert_eq!(get_account_balance(signer1_id), 10_000);
+            assert_eq!(get_account_balance(signer2_id), 5_000);
+            ink::env::test::set_caller::<DefaultEnvironment>(signer1_id);
+            ink::env::test::set_callee::<DefaultEnvironment>(signer2_id);
+            ink::env::test::transfer_in::<DefaultEnvironment>(7_500);
+            assert_eq!(get_account_balance(signer1_id), 2_500);
+            assert_eq!(get_account_balance(signer2_id), 12_500);
         }
     }
 }
