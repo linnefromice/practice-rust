@@ -33,7 +33,6 @@ mod simple_contract {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use sp_core::Pair;
         use ink::env::DefaultEnvironment;
         use ink_e2e::SubstrateConfig;
 
