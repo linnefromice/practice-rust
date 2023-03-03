@@ -80,6 +80,7 @@ pub mod shares {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use openbrush::contracts::traits::errors;
 
         fn default_accounts() -> ink::env::test::DefaultAccounts<ink::env::DefaultEnvironment> {
             ink::env::test::default_accounts::<ink::env::DefaultEnvironment>()
@@ -104,6 +105,36 @@ pub mod shares {
             // ink::env::test::advance_block::<ink::env::DefaultEnvironment>();
             // let events = ink::env::test::recorded_events();
             // assert_eq!(events.count(), 0);
+        }
+
+        #[ink::test]
+        fn mint_works() {
+            let accounts = default_accounts();
+            let alice = accounts.alice;
+            let bob = accounts.bob;
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(bob);
+            let mut contract = SharesContract::new(
+                Some(String::from("sample coin")),
+                Some(String::from("SAMPLE")),
+                8,
+            );
+
+            // by owner
+            assert!(contract.mint(bob, 10_000_000).is_ok());
+            assert!(contract.mint(alice, 5_000_000).is_ok());
+            assert_eq!(contract.balance_of(bob), 10_000_000);
+            assert_eq!(contract.balance_of(alice), 5_000_000);
+            assert_eq!(contract.total_supply(), 15_000_000);
+
+            // by not owner
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(alice);
+            assert_eq!(
+                contract.mint(bob, 2_500_000).unwrap_err(),
+                errors::PSP22Error::from(errors::OwnableError::CallerIsNotOwner)
+            );
+            assert_eq!(contract.balance_of(bob), 10_000_000);
+            assert_eq!(contract.balance_of(alice), 5_000_000);
+            assert_eq!(contract.total_supply(), 15_000_000);
         }
     }
 }
