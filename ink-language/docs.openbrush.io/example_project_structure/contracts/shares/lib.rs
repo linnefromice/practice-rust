@@ -57,7 +57,7 @@ pub mod shares {
             symbol: Option<String>,
             decimals: u8,
         ) -> Self {
-            Self {
+            let mut instance = Self {
                 psp22: psp22::Data::default(),
                 ownable: ownable::Data::default(),
                 metadata: metadata::Data {
@@ -66,7 +66,9 @@ pub mod shares {
                     decimals,
                     _reserved: None,
                 },
-            }
+            };
+            instance._init_with_owner(Self::env().caller());
+            instance
         }
 
         #[ink(message)]
@@ -85,26 +87,23 @@ pub mod shares {
 
         #[ink::test]
         fn new_works() {
-            let coin = SharesContract::new(
+            let accounts = default_accounts();
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            let contract = SharesContract::new(
                 Some(String::from("sample coin")),
                 Some(String::from("SAMPLE")),
                 18,
             );
 
-            assert_eq!(coin.token_name().unwrap(), String::from("sample coin"));
-            assert_eq!(coin.token_symbol().unwrap(), String::from("SAMPLE"));
-            assert_eq!(coin.total_supply(), 0);
-        }
-
-        #[ink::test]
-        fn mint_works() {
-            let accounts = default_accounts();
-            assert_eq!(accounts.alice, AccountId::from([0x01; 32]));
-            assert_eq!(accounts.bob, AccountId::from([0x02; 32]));
-            assert_eq!(accounts.charlie, AccountId::from([0x03; 32]));
-            ink::env::debug_println!("{:?}", accounts.alice);
-            ink::env::debug_println!("{:?}", accounts.bob);
-            ink::env::debug_println!("{:?}", accounts.charlie);
+            assert_eq!(contract.token_name().unwrap(), String::from("sample coin"));
+            assert_eq!(contract.token_symbol().unwrap(), String::from("SAMPLE"));
+            assert_eq!(contract.total_supply(), 0);
+            assert_eq!(contract.owner(), accounts.bob);
+            // let events = ink::env::test::recorded_events();
+            // assert_eq!(events.count(), 0);
+            // ink::env::test::advance_block::<ink::env::DefaultEnvironment>();
+            // let events = ink::env::test::recorded_events();
+            // assert_eq!(events.count(), 0);
         }
     }
 }
