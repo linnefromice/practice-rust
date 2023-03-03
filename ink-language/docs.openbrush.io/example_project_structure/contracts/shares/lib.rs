@@ -28,6 +28,12 @@ pub mod shares {
         metadata: metadata::Data,
     }
 
+    #[ink(event)]
+    pub struct InitializeEvent {
+        #[ink(topic)]
+        deployer: Option<AccountId>
+    }
+
     impl PSP22 for SharesContract {}
     impl Ownable for SharesContract {}
     impl PSP22Metadata for SharesContract {}
@@ -67,7 +73,13 @@ pub mod shares {
                     _reserved: None,
                 },
             };
+            let caller = Self::env().caller();
             instance._init_with_owner(Self::env().caller());
+
+            Self::env().emit_event(InitializeEvent {
+                deployer: Some(caller),
+            });
+
             instance
         }
 
@@ -86,6 +98,7 @@ pub mod shares {
             ink::env::test::default_accounts::<ink::env::DefaultEnvironment>()
         }
 
+        type SharesContractEvent = <SharesContract as ink::reflect::ContractEventBase>::Type;
         #[ink::test]
         fn new_works() {
             let accounts = default_accounts();
@@ -100,11 +113,15 @@ pub mod shares {
             assert_eq!(contract.token_symbol().unwrap(), String::from("SAMPLE"));
             assert_eq!(contract.total_supply(), 0);
             assert_eq!(contract.owner(), accounts.bob);
-            // let events = ink::env::test::recorded_events();
-            // assert_eq!(events.count(), 0);
-            // ink::env::test::advance_block::<ink::env::DefaultEnvironment>();
-            // let events = ink::env::test::recorded_events();
-            // assert_eq!(events.count(), 0);
+
+            // emit event
+            let events = ink::env::test::recorded_events();
+            assert_eq!(events.count(), 1);
+            let emitted_events = ink::env::test::recorded_events().collect::<Vec<_>>();
+            let decoded_event = <SharesContractEvent as scale::Decode>::decode(&mut &emitted_events[0].data[..]);
+            assert!(decoded_event.is_ok());
+            let SharesContractEvent::InitializeEvent( InitializeEvent { deployer }) = decoded_event.unwrap();
+            assert_eq!(deployer.unwrap(), accounts.bob);
         }
 
         #[ink::test]
