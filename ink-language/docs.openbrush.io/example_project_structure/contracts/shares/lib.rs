@@ -136,5 +136,37 @@ pub mod shares {
             assert_eq!(contract.balance_of(alice), 5_000_000);
             assert_eq!(contract.total_supply(), 15_000_000);
         }
+
+        #[ink::test]
+        fn burn_works() {
+            let accounts = default_accounts();
+            let alice = accounts.alice;
+            let bob = accounts.bob;
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(bob);
+            let mut contract = SharesContract::new(
+                Some(String::from("sample coin")),
+                Some(String::from("SAMPLE")),
+                8,
+            );
+            assert!(contract.mint(bob, 10_000_000).is_ok());
+            assert!(contract.mint(alice, 5_000_000).is_ok());
+
+            // by owner
+            assert!(contract.burn(bob, 1_000_000).is_ok());
+            assert!(contract.burn(alice, 3_000_000).is_ok());
+            assert_eq!(contract.balance_of(bob), 9_000_000);
+            assert_eq!(contract.balance_of(alice), 2_000_000);
+            assert_eq!(contract.total_supply(), 11_000_000);
+
+            // by not owner
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(alice);
+            assert_eq!(
+                contract.burn(bob, 500_000).unwrap_err(),
+                errors::PSP22Error::from(errors::OwnableError::CallerIsNotOwner)
+            );
+            assert_eq!(contract.balance_of(bob), 9_000_000);
+            assert_eq!(contract.balance_of(alice), 2_000_000);
+            assert_eq!(contract.total_supply(), 11_000_000);
+        }
     }
 }
