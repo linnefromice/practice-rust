@@ -1,4 +1,4 @@
-use super::{machine::Machine, instruction_table::InstructionTable, instruction::Instruction};
+use super::super::{machine::Machine, instruction_table::InstructionTable, instruction::Instruction};
 
 #[derive(Clone, PartialEq)]
 enum Operand {
