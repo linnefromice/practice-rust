@@ -34,6 +34,25 @@ fn value_at_risk(prices: &[f64], confidence_level: f64) -> f64 {
     }
 }
 
+// alias: conditional value at risk
+fn expected_shortfall(prices: &[f64], confidence_level: f64) -> f64 {
+    let returns = logarithmic_returns(prices);
+    let var = value_at_risk(prices, confidence_level);
+
+    let losses_worse_than_var: Vec<f64> = returns.iter()
+        .filter(|&&r| r < var)
+        .cloned()
+        .collect();
+
+    let num_losses = losses_worse_than_var.len() as f64;
+
+    if num_losses == 0.0 {
+        panic!("No losses worse than VaR found. Try a lower confidence level.")
+    }
+
+    losses_worse_than_var.iter().sum::<f64>() / num_losses
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,5 +95,12 @@ mod tests {
         let prices: Vec<f64> = (1..=365).map(|x| x as f64).collect();
         assert_eq!(value_at_risk(&prices, 0.95), 0.002879360839919127);
         assert_eq!(value_at_risk(&prices, 0.99), 0.002763506313518348);
+    }
+
+    #[test]
+    fn test_expected_shortfall() {
+        let prices: Vec<f64> = (1..=365).map(|x| x as f64).collect();
+        assert_eq!(expected_shortfall(&prices, 0.95), 0.0028095874242017862);
+        assert_eq!(expected_shortfall(&prices, 0.99), 0.0027510472522400977);
     }
 }
