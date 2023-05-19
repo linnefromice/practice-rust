@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "trace",
-    "custom_attribute_sample"
+    "derive_getter",
+    "macro_exec_sample"
 ]

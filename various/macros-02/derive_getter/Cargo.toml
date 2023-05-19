@@ -1,9 +1,13 @@
 [package]
-name = "custom_attribute_sample"
+name = "derive_getter"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+proc-macro = true
+
 [dependencies]
-trace = { path = "../trace" }
+syn = { version = "2.0.16", features = ["full", "extra-traits"] }
+quote = { version = "1.0.27" }
