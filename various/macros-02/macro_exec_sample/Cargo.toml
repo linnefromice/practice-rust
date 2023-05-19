@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 trace = { path = "../trace" }
+derive_getter = { path = "../derive_getter" }
