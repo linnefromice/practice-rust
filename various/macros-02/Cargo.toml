@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "trace",
+    "custom_attribute_sample"
+]
