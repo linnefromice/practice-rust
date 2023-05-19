@@ -20,11 +20,18 @@ pub fn trace(_attr: TokenStream, item: TokenStream) -> TokenStream {
             #s
         };
     }
+    let body = quote! {
+        let body = || { #body };
+    };
     let body: TokenStream = body.into();
     let body = parse_macro_input!(body as Stmt);
     
     let exit = quote! {
-        println!("Exit: {}", stringify!(#ident) );
+        {
+            let ret = body();
+            println!("Exit: {}", stringify!(#ident) );
+            ret
+        }
     };
     let exit: TokenStream = exit.into();
     let exit = parse_macro_input!(exit as Stmt);
