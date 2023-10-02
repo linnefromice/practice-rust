@@ -1,5 +1,10 @@
 use slog::{Level, Drain, Logger};
 
+struct RuntimeLevelFilter<D> {
+    drain: D,
+    level: Level,
+}
+
 fn main() {
     let log_level = Level::Trace;
 
