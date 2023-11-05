@@ -38,4 +38,15 @@ fn main() {
             println!("{}", e);
         }
     }
+
+    let remote_url = "https://api.coingecko.com/api/v3/simple/price?ids=dai&vs_currencies=usd";
+    let generated = codegen("Sample2User", remote_url, Options::default());
+    match generated {
+        Ok(generated) => {
+            println!("{}", generated);
+        }
+        Err(e) => {
+            println!("{}", e);
+        }
+    }
 }
