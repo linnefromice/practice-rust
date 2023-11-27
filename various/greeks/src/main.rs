@@ -55,5 +55,20 @@ mod tests {
             ),
             12.527923392521458
         );
+
+        // https://www.monte-carlo-note.com/2017/04/python-implied-volatility.html
+        assert_eq!(
+            black_scholes(
+                BlackScholesInput {
+                    s: 100.0,
+                    k: 100.0,
+                    t: 1.0,
+                    r: 0.05,
+                    sigma: 0.45234036,
+                    is_call: true
+                }
+            ),
+            19.999999993347053
+        );
     }
 }
