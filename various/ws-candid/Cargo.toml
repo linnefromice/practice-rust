@@ -1,0 +1,10 @@
+[package]
+name = "ws-candid"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+candid = "0.10.0"
+candid_parser = "0.1.0"
