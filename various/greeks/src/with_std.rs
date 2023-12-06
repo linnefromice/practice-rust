@@ -159,4 +159,70 @@ mod tests {
             (0.4523403406867319, 19)
         );
     }
+
+    // https://finance.yahoo.com/quote/%5ESPX/options?date=1710460800&p=%5ESPX&straddle=false
+    #[test]
+    fn test_seek_implied_volatility_3() {
+        // https://finance.yahoo.com/quote/SPX240315C04500000?p=SPX240315C04500000
+        // https://query2.finance.yahoo.com/v8/finance/chart/SPX240315C04500000
+        assert_eq!(
+            seek_implied_volatility(
+                SeekIvParam {
+                    s: 4550.43,
+                    k: 4550.0,
+                    t: 139.0/365.0,
+                    r: 0.00,
+                    is_call: true,
+                    market_price: 191.77,
+                    initial_sigma: 0.5,
+                    tolerance: 0.000001,
+                    attempt_count: 1000
+                }
+            ),
+            (0.459, 19)
+        );
+    }
+
+    #[test]
+    fn test_seek_implied_volatility_4() {
+        // https://finance.yahoo.com/quote/SPX240315P04500000?p=SPX240315P04500000
+        // https://query2.finance.yahoo.com/v8/finance/chart/SPX240315P04500000
+        assert_eq!(
+            seek_implied_volatility(
+                SeekIvParam {
+                    s: 4550.43,
+                    k: 4550.0,
+                    t: 139.0/365.0,
+                    r: 0.00,
+                    is_call: false,
+                    market_price: 83.8,
+                    initial_sigma: 0.5,
+                    tolerance: 0.000001,
+                    attempt_count: 1000
+                }
+            ),
+            (0.459, 19)
+        );
+    }
+
+    #[test]
+    fn test_seek_implied_volatility_5() {
+        // https://www.barchart.com/stocks/quotes/$SPX/volatility-greeks?expiration=2024-03-15-m
+        assert_eq!(
+            seek_implied_volatility(
+                SeekIvParam {
+                    s: 4544.99,
+                    k: 4500.0,
+                    t: 139.0/365.0,
+                    r: 0.00,
+                    is_call: true,
+                    market_price: 185.85,
+                    initial_sigma: 0.5,
+                    tolerance: 0.000001,
+                    attempt_count: 1000
+                }
+            ),
+            (0.459, 19)
+        );
+    }
 }
