@@ -1,7 +1,7 @@
 pub struct ParamVixPerTerm {
-    variance: f64,
-    t: f64,
-    minites_until_t: f64,
+    pub variance: f64,
+    pub t: f64,
+    pub minites_until_t: f64,
 }
 pub struct ParamVix {
     pub near: ParamVixPerTerm,

@@ -1,7 +1,9 @@
-use k::{calculate_f, ParamF};
 use serde::Deserialize;
 
-use crate::{options::{convert_data_to_options, select_target_puts, select_target_calls}, k::find_closest_less_than_f};
+use k::{calculate_f, ParamF, find_closest_less_than_f};
+use options::{convert_data_to_options, select_target_puts, select_target_calls};
+use variance::variance_per_term;
+use vix::{ParamVix, calculate_vix, ParamVixPerTerm};
 
 mod k;
 mod options;
@@ -39,15 +41,29 @@ fn main() {
     let near_atm_strike = 1965.0;
     let next_atm_strike = 1960.0;
 
+    // Calculate Variance
     println!("near");
-    let _ = calculate_variance_per_term(near_data, near_atm_strike, r1, t1);
+    let variance_1 = calculate_variance_per_term(near_data, near_atm_strike, r1, t1);
+    println!("variance_1: {}", variance_1);
 
     println!("next");
-    let _ = calculate_variance_per_term(next_data, next_atm_strike, r2, t2);
-    
-    // [3] Calculate Variance -> TODO
+    let variance_2 = calculate_variance_per_term(next_data, next_atm_strike, r2, t2);
+    println!("variance_2: {}", variance_2);
 
-    // [4] Calculate VIX -> TODO
+    // Calculate VIX
+    let vix = calculate_vix(ParamVix {
+        near: ParamVixPerTerm {
+            variance: variance_1,
+            t: t1,
+            minites_until_t: 34484.0,
+        },
+        next: ParamVixPerTerm {
+            variance: variance_2,
+            t: t2,
+            minites_until_t: 44954.0,
+        },
+    });
+    println!("vix: {}", vix);
 }
 
 fn calculate_variance_per_term(data: Vec<Datum>, atm_strike: f64, risk_free_rate: f64, time_to_expiration: f64) -> f64 {
@@ -73,9 +89,42 @@ fn calculate_variance_per_term(data: Vec<Datum>, atm_strike: f64, risk_free_rate
 
     let calls = select_target_calls(*k_0, options.clone());
     let puts = select_target_puts(*k_0, options.clone());
+    // println!("calls: {:?}", calls);
+    // println!("puts: {:?}", puts);
 
-    println!("calls: {:?}", calls.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
-    println!("puts: {:?}", puts.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
+    // [3] Calculate Variance
+    let (k_0_from_calls, calls) = calls.split_first().unwrap();
+    let (k_0_from_puts, puts) = puts.split_first().unwrap();
+    // println!("k_0_from_calls: {:?}", k_0_from_calls);
+    // println!("k_0_from_puts: {:?}", k_0_from_puts);
+    assert!(k_0_from_calls.strike_price == *k_0);
+    assert!(k_0_from_puts.strike_price == *k_0);
 
-    0.0
+    let k_0_option = variance::Option {
+        strike_price: *k_0,
+        // NOTE: calculate mid from call and ask
+        bid: (k_0_from_calls.bid + k_0_from_calls.ask) / 2.0,
+        ask: (k_0_from_puts.bid + k_0_from_puts.ask) / 2.0,
+    };
+    let variance_options = [
+        puts.iter().rev().map(|op| variance::Option {
+            strike_price: op.strike_price,
+            bid: op.bid,
+            ask: op.ask,
+        }).collect::<Vec<variance::Option>>(),
+        vec![k_0_option],
+        calls.iter().map(|op| variance::Option {
+            strike_price: op.strike_price,
+            bid: op.bid,
+            ask: op.ask,
+        }).collect::<Vec<variance::Option>>(),
+    ].concat();
+    
+    variance_per_term(variance::ParamVariance {
+        options: variance_options,
+        forward_price: f,
+        k_0: *k_0,
+        risk_free_rate,
+        time_to_expiration,
+    })
 }

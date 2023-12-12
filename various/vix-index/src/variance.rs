@@ -1,8 +1,8 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Option {
     pub strike_price: f64,
-    pub call: f64,
-    pub put: f64,
+    pub bid: f64,
+    pub ask: f64,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParamVariance {
@@ -13,7 +13,7 @@ pub struct ParamVariance {
     pub forward_price: f64,
     pub k_0: f64,
 }
-fn variance_per_term(p: ParamVariance) -> f64 {
+pub fn variance_per_term(p: ParamVariance) -> f64 {
     let mut options_for_contribution = vec![];
     let last_idx = p.options.len() - 1;
     for (idx, option) in p.options.iter().enumerate() {
@@ -28,7 +28,7 @@ fn variance_per_term(p: ParamVariance) -> f64 {
                 (p.options[idx + 1].strike_price - p.options[idx - 1].strike_price) / 2.0
             }
         };
-        let mid_price = (option.call + option.put) / 2.0;
+        let mid_price = (option.bid + option.ask) / 2.0;
 
         options_for_contribution.push(OptionForContribution {
             strike_price: option.strike_price,
