@@ -1,4 +1,5 @@
 mod k;
+mod options;
 mod variance;
 
 // pub struct Inputs {
