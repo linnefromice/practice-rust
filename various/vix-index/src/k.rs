@@ -7,7 +7,6 @@ pub struct ParamF {
     pub time_to_expiration: f64,
 }
 pub fn calculate_f(p: ParamF) -> f64 {
-    println!("param_f: {:?}", p);
     p.strike_price + (p.risk_free_rate * p.time_to_expiration).exp() * (p.call_price - p.put_price)
 }
 

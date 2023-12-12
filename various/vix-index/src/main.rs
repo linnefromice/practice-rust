@@ -39,53 +39,43 @@ fn main() {
     let near_atm_strike = 1965.0;
     let next_atm_strike = 1960.0;
 
-    // [1] Calculate F, K_0
-    let near_param_f = near_data.iter().find(|d| d.strike_price == near_atm_strike).unwrap();
-    let next_param_f = next_data.iter().find(|d| d.strike_price == next_atm_strike).unwrap();
+    println!("near");
+    let _ = calculate_variance_per_term(near_data, near_atm_strike, r1, t1);
 
-    let near_f = calculate_f(ParamF {
-        strike_price: near_param_f.strike_price,
-        call_price: (near_param_f.call_bid + near_param_f.call_ask) / 2.0,
-        put_price: (near_param_f.put_bid + near_param_f.put_ask) / 2.0,
-        risk_free_rate: r1,
-        time_to_expiration: t1,
-    });
-    let next_f = calculate_f(ParamF {
-        strike_price: next_param_f.strike_price,
-        call_price: (next_param_f.call_bid + next_param_f.call_ask) / 2.0,
-        put_price: (next_param_f.put_bid + next_param_f.put_ask) / 2.0,
-        risk_free_rate: r2,
-        time_to_expiration: t2,
-    });
-
-    let near_strike_prices = near_data.iter().map(|d| d.strike_price).collect::<Vec<f64>>();
-    let near_k_0_idx = find_closest_less_than_f(near_f, near_strike_prices.clone()).unwrap();
-    let near_k_0 = near_strike_prices.get(near_k_0_idx).unwrap();
-
-    let next_strike_prices = next_data.iter().map(|d| d.strike_price).collect::<Vec<f64>>();
-    let next_k_0_idx = find_closest_less_than_f(next_f, next_strike_prices.clone()).unwrap();
-    let next_k_0 = next_strike_prices.get(next_k_0_idx).unwrap();
-
-    println!("near_f: {}", near_f);
-    println!("near_k_0: {}", near_k_0);
-    println!("next_f: {}", next_f);
-    println!("next_k_0: {}", next_k_0);
-
-    // [2] Select Options to calculate
-    let near_options = convert_data_to_options(near_data);
-    let next_options = convert_data_to_options(next_data);
-
-    let near_calls = select_target_calls(*near_k_0, near_options.clone());
-    let near_puts = select_target_puts(*near_k_0, near_options.clone());
-    println!("near_calls: {:?}", near_calls.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
-    println!("near_puts: {:?}", near_puts.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
-
-    let next_calls = select_target_calls(*next_k_0, next_options.clone());
-    let next_puts = select_target_puts(*next_k_0, next_options.clone());
-    println!("next_calls: {:?}", next_calls.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
-    println!("next_puts: {:?}", next_puts.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
-
+    println!("next");
+    let _ = calculate_variance_per_term(next_data, next_atm_strike, r2, t2);
+    
     // [3] Calculate Variance -> TODO
 
     // [4] Calculate VIX -> TODO
+}
+
+fn calculate_variance_per_term(data: Vec<Datum>, atm_strike: f64, risk_free_rate: f64, time_to_expiration: f64) -> f64 {
+    // [1] Calculate F, K_0
+    let datum_for_f = data.iter().find(|d| d.strike_price == atm_strike).unwrap();
+    let f = calculate_f(ParamF {
+        strike_price: datum_for_f.strike_price,
+        call_price: (datum_for_f.call_bid + datum_for_f.call_ask) / 2.0,
+        put_price: (datum_for_f.put_bid + datum_for_f.put_ask) / 2.0,
+        risk_free_rate,
+        time_to_expiration,
+    });
+
+    let strike_prices = data.iter().map(|d| d.strike_price).collect::<Vec<f64>>();
+    let k_0_idx = find_closest_less_than_f(f, strike_prices.clone()).unwrap();
+    let k_0 = strike_prices.get(k_0_idx).unwrap();
+
+    println!("f: {}", f);
+    println!("k_0: {}", k_0);
+
+    // [2] Select Options to calculate
+    let options = convert_data_to_options(data);
+
+    let calls = select_target_calls(*k_0, options.clone());
+    let puts = select_target_puts(*k_0, options.clone());
+
+    println!("calls: {:?}", calls.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
+    println!("puts: {:?}", puts.iter().map(|op| op.strike_price).collect::<Vec<f64>>());
+
+    0.0
 }
