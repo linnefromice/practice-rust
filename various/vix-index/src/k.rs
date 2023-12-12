@@ -1,9 +1,9 @@
 pub struct ParamF {
-    strike_price: f64,
-    call_price: f64,
-    put_price: f64,
-    risk_free_rate: f64,
-    time_to_expiration: f64,
+    pub strike_price: f64,
+    pub call_price: f64,
+    pub put_price: f64,
+    pub risk_free_rate: f64,
+    pub time_to_expiration: f64,
 }
 pub fn calculate_f(p: ParamF) -> f64 {
     p.strike_price + (p.risk_free_rate * p.time_to_expiration).exp() * (p.call_price - p.put_price)
@@ -31,8 +31,8 @@ mod tests {
 
     #[test]
     fn test_f_for_near_term() {
-        let t1 = 34484.0 / 525600.0;
-        let r1 = 0.031664;
+        let t1 = 34484.0 / 525600.0; // 0.0656088
+        let r1 = 0.00031664;
         assert_eq!(
             calculate_f(ParamF {
                 strike_price: 1965.0,
@@ -41,14 +41,14 @@ mod tests {
                 risk_free_rate: r1,
                 time_to_expiration: t1,
             }),
-            1962.8956328456716 // 1962.89996
+            1962.8999563733503 // 1962.89996
         );
     }
 
     #[test]
     fn test_f_for_next_term() {
-        let t2 = 44954.0 / 525600.0;
-        let r2 = 0.028797;
+        let t2 = 44954.0 / 525600.0; // 0.0855289
+        let r2 = 0.00028797;
         assert_eq!(
             calculate_f(ParamF {
                 strike_price: 1960.0,
@@ -57,7 +57,7 @@ mod tests {
                 risk_free_rate: r2,
                 time_to_expiration: t2,
             }),
-            1962.4059184285786 // 1962.40006
+            1962.400059112159 // 1962.40006
         );
     }
 

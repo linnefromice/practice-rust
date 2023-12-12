@@ -1,4 +1,5 @@
 mod k;
+mod variance;
 
 // pub struct Inputs {
 //     pub spot_price: f64,
