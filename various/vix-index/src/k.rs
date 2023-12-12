@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct ParamF {
     pub strike_price: f64,
     pub call_price: f64,
@@ -6,10 +7,11 @@ pub struct ParamF {
     pub time_to_expiration: f64,
 }
 pub fn calculate_f(p: ParamF) -> f64 {
+    println!("param_f: {:?}", p);
     p.strike_price + (p.risk_free_rate * p.time_to_expiration).exp() * (p.call_price - p.put_price)
 }
 
-pub fn find_closest_less_than_f(list: Vec<f64>, f: f64) -> Option<usize> {
+pub fn find_closest_less_than_f(f: f64, list: Vec<f64>) -> Option<usize> {
     let mut closest_idx = None;
     let mut closest_val = None;
     
@@ -75,7 +77,7 @@ mod tests {
             1975.0,
             1980.0
         ];
-        let idx = find_closest_less_than_f(list.clone(), val);
+        let idx = find_closest_less_than_f(val, list.clone());
         assert_eq!(*list.get(idx.unwrap()).unwrap(), 1960.0);
     }
 }

@@ -113,7 +113,7 @@ mod tests {
             1965.0,
             1970.0
         ];
-        let k_0 = list.get(find_closest_less_than_f(list.clone(), f).unwrap()).unwrap();
+        let k_0 = list.get(find_closest_less_than_f(f, list.clone()).unwrap()).unwrap();
 
         assert_eq!(
             variance_right_part(f, *k_0, t1),
@@ -138,7 +138,7 @@ mod tests {
             1965.0,
             1970.0
         ];
-        let k_0 = list.get(find_closest_less_than_f(list.clone(), f).unwrap()).unwrap();
+        let k_0 = list.get(find_closest_less_than_f(f, list.clone()).unwrap()).unwrap();
         
         assert_eq!(
             variance_right_part(f, *k_0, t2),

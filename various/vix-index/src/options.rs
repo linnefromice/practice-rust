@@ -1,3 +1,5 @@
+use crate::Datum;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Option {
     pub strike_price: f64,
@@ -40,43 +42,31 @@ fn non_zero_bid_rule(options: &mut Vec<Option>) -> Vec<Option> {
     result
 }
 
+pub fn convert_data_to_options(data: Vec<Datum>) -> Vec<Option> {
+    let mut options = vec![];
+    for datum in data {
+        options.push(Option {
+            strike_price: datum.strike_price,
+            bid: datum.call_bid,
+            ask: datum.call_ask,
+            is_call: true,
+        });
+        options.push(Option {
+            strike_price: datum.strike_price,
+            bid: datum.put_bid,
+            ask: datum.put_ask,
+            is_call: false,
+        });
+    }
+    options
+}
+
+
 #[cfg(test)]
 mod tests {
-    use serde::Deserialize;
+    use crate::read_data;
 
     use super::*;
-
-    #[derive(Debug, Deserialize)]
-    pub struct Datum {
-        pub strike_price: f64,
-        pub call_bid: f64,
-        pub call_ask: f64,
-        pub put_bid: f64,
-        pub put_ask: f64,
-    }
-
-    fn read_data(path: &str) -> Vec<Datum> {
-        let mut reader = csv::Reader::from_path(path).unwrap();
-        reader.deserialize().collect::<Result<Vec<Datum>, csv::Error>>().unwrap()
-    }
-    fn convert_data_to_options(data: Vec<Datum>) -> Vec<super::Option> {
-        let mut options = vec![];
-        for datum in data {
-            options.push(super::Option {
-                strike_price: datum.strike_price,
-                bid: datum.call_bid,
-                ask: datum.call_ask,
-                is_call: true,
-            });
-            options.push(super::Option {
-                strike_price: datum.strike_price,
-                bid: datum.put_bid,
-                ask: datum.put_ask,
-                is_call: false,
-            });
-        }
-        options
-    }
 
     #[test]
     fn test_select_target_calls_in_near_term() {
