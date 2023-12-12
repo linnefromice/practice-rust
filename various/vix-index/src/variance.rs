@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sum_contributions_near_term() {
+    fn test_variance_near_term() {
         let mut reader = csv::Reader::from_path("resources/contributions/near-term.csv").unwrap();
         let data = reader.deserialize().collect::<Result<Vec<Datum>, csv::Error>>().unwrap();
         let t1 = 34484.0 / 525600.0; // 0.0656088
@@ -174,14 +174,28 @@ mod tests {
             calculate_sum_contributions(options_for_contributions.clone(), r1, t1),
             0.0006320515941509289 // 0.0006320516
         );
+        let left = variance_left_part(options_for_contributions, r1, t1);
         assert_eq!(
-            variance_left_part(options_for_contributions, r1, t1),
+            left,
             0.01926727281555088 // 0.019267
         );
+
+        let f = 1962.89996;
+        let k0 = 1960.0;
+        let right = variance_right_part(f, k0, t1);
+        assert_eq!(
+            right,
+            0.00003336641849541261 // 0.00003337
+        );
+
+        assert_eq!(
+            left - right,
+            0.019233906397055467 // 0.019233906
+        )
     }
 
     #[test]
-    fn test_sum_contributions_next_term() {
+    fn test_variance_next_term() {
         let mut reader = csv::Reader::from_path("resources/contributions/next-term.csv").unwrap();
         let data = reader.deserialize().collect::<Result<Vec<Datum>, csv::Error>>().unwrap();
         let t2 = 44954.0 / 525600.0; // 0.0855289
@@ -199,9 +213,23 @@ mod tests {
             calculate_sum_contributions(options_for_contributions.clone(), r2, t2),
             0.0008314016403627303 // 0.0006320516
         );
+        let left = variance_left_part(options_for_contributions, r2, t2);
         assert_eq!(
-            variance_left_part(options_for_contributions, r2, t2),
+            left,
             0.01944141576610095 // 0.019267
         );
+
+        let f = 1962.40006;
+        let k0 = 1960.0;
+        let right = variance_right_part(f, k0, t2);
+        assert_eq!(
+            right,
+            0.00001753149977515857 // 0.00001753
+        );
+
+        assert_eq!(
+            left - right,
+            0.01942388426632579 // 0.019423884
+        )
     }
 }
