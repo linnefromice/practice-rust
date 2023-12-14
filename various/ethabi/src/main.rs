@@ -1,12 +1,21 @@
+use std::{fs::File, io::Read};
+
+use ic_web3_rs::ethabi::Contract;
+
 fn main() {
     println!("Hello, world!");
+    let mut file = File::open("res/OpenMarketViewer.json").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let contract = Contract::load(contents.as_bytes()).unwrap();
+
+    let get_market_func = contract.functions.get("getMarket").unwrap();
+    println!("{:?}", get_market_func[0].signature());
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, io::Read};
-
-    use ic_web3_rs::ethabi::Contract;
+  use super::*;
 
   #[test]
   fn test_erc20_contract_functions() {
