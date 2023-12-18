@@ -122,4 +122,74 @@ mod tests {
         let cmd_yield = cmd_yields.last().unwrap();
         assert_eq!(compounded_apy_rate_from_bey_r(cmd_yield.yield_), 1.4886309342686894)
     }
+
+    const YIELDS_IN_REAL: [CmtYield; 9] = [
+        CmtYield { days: 182, yield_: 5.342 }, // 6 Mo
+        CmtYield { days: 365, yield_: 4.988 }, // 1 Yr
+        CmtYield { days: 730, yield_: 4.421 }, // 2 Yr
+        CmtYield { days: 1095, yield_: 4.103 }, // 3 Yr
+        CmtYield { days: 1825, yield_: 3.897 }, // 5 Yr
+        CmtYield { days: 2555, yield_: 3.929 }, // 7 Yr
+        CmtYield { days: 3650, yield_: 3.907 }, // 10 Yr
+        CmtYield { days: 7300, yield_: 4.189 }, // 20 Yr
+        CmtYield { days: 10950, yield_: 4.01 }, // 30 Yr
+    ];
+
+    #[test]
+    fn test_real_1() {
+        let t1 = 24;
+        let r1 = calculate_risk_free_rate(YIELDS_IN_REAL.to_vec(), t1);
+        assert_eq!(r1, 0.031664)
+    }
+
+    #[test]
+    fn test_real_2() {
+        let t2 = 31;
+        let r2 = calculate_risk_free_rate(YIELDS_IN_REAL.to_vec(), t2);
+        assert_eq!(r2, 0.028797)
+    }
+
+    const YIELDS_IN_INVESTING_COM: [CmtYield; 12] = [
+        CmtYield { days: 30, yield_: 5.388 }, // 1 Mo
+        CmtYield { days: 60, yield_: 5.412 }, // 2 Mo
+        CmtYield { days: 91, yield_: 5.395 }, // 3 Mo
+        // CmtYield { days: TODO, yield_: 5.408 }, // 4 Mo
+        CmtYield { days: 182, yield_: 5.334 }, // 6 Mo
+        CmtYield { days: 365, yield_: 4.963 }, // 1 Yr
+        CmtYield { days: 730, yield_: 4.419 }, // 2 Yr
+        CmtYield { days: 1095, yield_: 4.100 }, // 3 Yr
+        CmtYield { days: 1825, yield_: 3.897 }, // 5 Yr
+        CmtYield { days: 2555, yield_: 3.930 }, // 7 Yr
+        CmtYield { days: 3650, yield_: 3.914 }, // 10 Yr
+        CmtYield { days: 7300, yield_: 4.202 }, // 20 Yr
+        CmtYield { days: 10950, yield_: 4.026 }, // 30 Yr
+    ];
+
+    #[test]
+    fn test_investing_1() {
+        let t1 = 24;
+        let r1 = calculate_risk_free_rate(YIELDS_IN_INVESTING_COM.to_vec(), t1);
+        assert_eq!(r1, 0.031664)
+    }
+
+    #[test]
+    fn test_investing_2() {
+        let t2 = 31;
+        let r2 = calculate_risk_free_rate(YIELDS_IN_INVESTING_COM.to_vec(), t2);
+        assert_eq!(r2, 0.028797)
+    }
+
+    #[test]
+    fn test_investing_1_more_than_6m() {
+        let t1 = 24;
+        let r1 = calculate_risk_free_rate(YIELDS_IN_INVESTING_COM[4..].to_vec(), t1);
+        assert_eq!(r1, 0.031664)
+    }
+
+    #[test]
+    fn test_investing_2_more_than_6m() {
+        let t2 = 31;
+        let r2 = calculate_risk_free_rate(YIELDS_IN_INVESTING_COM[4..].to_vec(), t2);
+        assert_eq!(r2, 0.028797)
+    }
 }
