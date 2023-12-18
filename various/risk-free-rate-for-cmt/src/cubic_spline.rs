@@ -92,7 +92,7 @@ impl MonotonicCubicSpline {
 
 #[cfg(test)]
 mod tests {
-    use crate::CmtYield;
+    use crate::{CmtYield, compounded_apy_rate_from_bey_r};
 
     use super::*;
 
@@ -118,7 +118,8 @@ mod tests {
             &YIELDS_IN_CBOE.iter().map(|v| v.days as f64).collect(),
             &YIELDS_IN_CBOE.iter().map(|v| v.yield_).collect()
         );
-        let r1 = spline.interpolate(t1 as f64);
+        let y = spline.interpolate(t1 as f64);
+        let r1 = compounded_apy_rate_from_bey_r(y);
         assert_eq!(r1, 0.031664)
     }
 
@@ -129,7 +130,8 @@ mod tests {
             &YIELDS_IN_CBOE.iter().map(|v| v.days as f64).collect(),
             &YIELDS_IN_CBOE.iter().map(|v| v.yield_).collect()
         );
-        let r2 = spline.interpolate(t2 as f64);
+        let y = spline.interpolate(t2 as f64);
+        let r2 = compounded_apy_rate_from_bey_r(y);
         assert_eq!(r2, 0.028797)
     }
 }

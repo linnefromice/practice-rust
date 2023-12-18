@@ -1,4 +1,5 @@
 mod cubic_spline;
+// mod splines;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct CmtYield {
@@ -26,7 +27,7 @@ fn calculate_risk_free_rate(cmt_yields: Vec<CmtYield>, t: u32) -> f64 {
 }
 
 // Convert BEY to APY and then to continuously compounded rate
-fn compounded_apy_rate_from_bey_r(bey_r: f64) -> f64 {
+pub fn compounded_apy_rate_from_bey_r(bey_r: f64) -> f64 {
     let apy_t = ((1.0 + bey_r / 2.0) as f64).powf(2.0) - 1.0;
     (1.0 + apy_t).ln()
 }
