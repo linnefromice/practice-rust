@@ -6,6 +6,7 @@ pub struct CmtYield {
 
 #[cfg(test)]
 pub const YIELDS_IN_CBOE: [CmtYield; 12] = [
+    // yield_ is in percentage (%)
     CmtYield { days: 30, yield_: 0.03 }, // 1 Mo
     CmtYield { days: 60, yield_: 0.02 }, // 2 Mo
     CmtYield { days: 91, yield_: 0.04 }, // 3 Mo
@@ -22,6 +23,7 @@ pub const YIELDS_IN_CBOE: [CmtYield; 12] = [
 
 #[cfg(test)]
 pub const YIELDS_IN_REAL: [CmtYield; 9] = [
+    // yield_ is in percentage (%)
     CmtYield { days: 182, yield_: 5.342 }, // 6 Mo
     CmtYield { days: 365, yield_: 4.988 }, // 1 Yr
     CmtYield { days: 730, yield_: 4.421 }, // 2 Yr
@@ -35,6 +37,7 @@ pub const YIELDS_IN_REAL: [CmtYield; 9] = [
 
 #[cfg(test)]
 pub const YIELDS_IN_INVESTING_COM: [CmtYield; 12] = [
+    // yield_ is in percentage (%)
     CmtYield { days: 30, yield_: 5.388 }, // 1 Mo
     CmtYield { days: 60, yield_: 5.412 }, // 2 Mo
     CmtYield { days: 91, yield_: 5.395 }, // 3 Mo
