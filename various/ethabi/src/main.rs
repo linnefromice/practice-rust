@@ -4,13 +4,18 @@ use ic_web3_rs::ethabi::Contract;
 
 fn main() {
     println!("Hello, world!");
-    let mut file = File::open("res/OpenMarketViewer.json").unwrap();
+    let mut file = File::open("res/StdReference.json").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let contract = Contract::load(contents.as_bytes()).unwrap();
 
-    let get_market_func = contract.functions.get("getMarket").unwrap();
-    println!("{:?}", get_market_func[0].signature());
+    let funcs = contract.functions;
+    for (name, func) in funcs.iter() {
+        println!("{}: {:?}", name, func);
+        println!("{:?}", func[0].signature());
+    }
+    // let get_market_func = contract.functions.get("getMarket").unwrap();
+    // println!("{:?}", get_market_func[0].signature());
 }
 
 #[cfg(test)]
