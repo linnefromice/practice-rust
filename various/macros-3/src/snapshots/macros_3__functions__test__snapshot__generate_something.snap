@@ -1,0 +1,8 @@
+---
+source: src/functions.rs
+expression: formatted
+---
+fn something(request: String) -> String {
+    unimplemented!()
+}
+
