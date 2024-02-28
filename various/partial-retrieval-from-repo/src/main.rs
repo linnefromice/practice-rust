@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{remove_file, File};
 use std::io::prelude::*;
 use std::path::Path;
 use flate2::read::GzDecoder;
@@ -29,6 +29,9 @@ fn download_and_extract(repo_url: &str, temp_tar_gz_path: &Path, extract_path: &
             entry.unpack_in(".").expect("Failed to unpack");
         }
     });
+
+    // remove tar.gz file
+    remove_file(temp_tar_gz_path)?;
 
     Ok(())
 }
