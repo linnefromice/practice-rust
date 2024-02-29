@@ -1,10 +1,12 @@
-use std::fs::{remove_file, File};
+use std::fs::{remove_dir, remove_file, rename, File};
 use std::io::prelude::*;
 use std::path::Path;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-fn download_and_extract(repo_url: &str, temp_tar_gz_path: &Path, extract_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn download_and_extract(repo_url: &str, temp_tar_gz_path: &Path, parent_path: &str, project_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let extract_path = format!("{}/{}", parent_path, project_path);
+
     // Step 1: Download the .tar.gz archive
     let response = ureq::get(repo_url).call();
     if response.is_err() {
@@ -25,23 +27,31 @@ fn download_and_extract(repo_url: &str, temp_tar_gz_path: &Path, extract_path: &
     // Extract only the specified folder
     archive.entries()?.filter_map(|e| e.ok()).for_each(|mut entry| {
         let path = entry.path().ok().unwrap();
-        if path.to_string_lossy().contains(extract_path) {
+        if path.to_string_lossy().contains(&extract_path) {
             entry.unpack_in(".").expect("Failed to unpack");
         }
     });
 
-    // remove tar.gz file
+    // Step 3: Clean up
+    rename(&extract_path, project_path)?;
     remove_file(temp_tar_gz_path)?;
+    remove_dir(parent_path)?;
 
     Ok(())
 }
 
-fn main() {
-    let repo_url = "https://github.com/horizonx-tech/chainsight-showcase/archive/refs/heads/main.tar.gz";
-    let temp_tar_gz_path = Path::new("main.tar.gz");
-    let extract_path = "chainsight-showcase-main/sp500";
+const REPOSITORY: &str = "chainsight-showcase";
+const BRANCH: &str = "main";
 
-    if let Err(e) = download_and_extract(repo_url, temp_tar_gz_path, extract_path) {
+fn main() {
+    let project_name = "sp500";
+
+    let tar_gz_file = format!("{}.tar.gz", BRANCH);
+    let repo_url = format!("https://github.com/horizonx-tech/{}/archive/refs/heads/{}", REPOSITORY, tar_gz_file);
+    let temp_tar_gz_path = Path::new(&tar_gz_file);
+    let parent_path = format!("{}-{}", REPOSITORY, BRANCH);
+
+    if let Err(e) = download_and_extract(&repo_url, temp_tar_gz_path, &parent_path, &project_name) {
         eprintln!("Error occurred: {}", e);
     }
 }
