@@ -1,3 +1,6 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use ring::hmac;
 use serde::{de::DeserializeOwned, Deserialize};
 
 const PUBLIC_API: &str = "https://api.coin.z.com/public";
@@ -70,6 +73,53 @@ pub fn public_orderbooks() -> Result<OrderbooksResponse, Error> {
     get(&url)
 }
 
+fn secrets() -> (String, String) {
+    dotenv::dotenv().ok();
+
+    let key = std::env::var("API_KEY").expect("API_KEY is not set");
+    let secret = std::env::var("API_SECRET").expect("API_SECRET is not set");
+    (key, secret)
+}
+fn get_timestamp() -> u64 {
+    let start = SystemTime::now();
+    let since_epoch = start.duration_since(UNIX_EPOCH).expect("Time went backwards");
+
+    since_epoch.as_secs() * 1000 + since_epoch.subsec_nanos() as u64 / 1_000_000
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AccountAssetsResponse {
+    pub data: Vec<AccountAssetsResponseData>,
+    pub responsetime: String,
+    pub status: u8
+}
+#[derive(Debug, Deserialize)]
+pub struct AccountAssetsResponseData {
+    pub amount: String,
+    pub available: String,
+    #[serde(rename = "conversionRate")]
+    pub conversion_rate: String,
+    pub symbol: String
+}
+pub fn private_account_assets() -> Result<AccountAssetsResponse, Error> {
+    let (api_key, api_secret) = secrets();
+    let timestamp = get_timestamp();
+    let path = "/v1/account/assets";
+    let method = "GET";
+    let url = format!("{}{}", PRIVATE_API, path);
+
+    let text = format!("{}{}{}", timestamp, method, path);
+    let signed_key = hmac::Key::new(hmac::HMAC_SHA256, api_secret.as_bytes());
+    let sign = hex::encode(hmac::sign(&signed_key, text.as_bytes()).as_ref());
+
+    let body = ureq::get(&url)
+        .set("API-KEY", &api_key)
+        .set("API-TIMESTAMP", &timestamp.to_string())
+        .set("API-SIGN", &sign)
+        .call().map_err(|e| Error(e.to_string()))?;
+    body.into_json().map_err(|e| Error(e.to_string()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,4 +147,10 @@ mod tests {
     //     let val = res.unwrap();
     //     assert_eq!(val.status, 0);
     // }
+
+    #[test]
+    fn verification() {
+        let res = private_account_assets();
+        println!("{:?}", res)
+    }
 }
