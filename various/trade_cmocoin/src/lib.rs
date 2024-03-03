@@ -1,13 +1,21 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{collections::BTreeMap, time::{SystemTime, UNIX_EPOCH}};
 
 use ring::hmac;
 use serde::{de::DeserializeOwned, Deserialize};
+use serde_json::json;
 
 const PUBLIC_API: &str = "https://api.coin.z.com/public";
 const PRIVATE_API: &str = "https://api.coin.z.com/private";
 
 #[derive(Debug)]
 pub struct Error(String);
+
+#[derive(Debug, Deserialize)]
+pub struct Pagination {
+    #[serde(rename = "currentPage")]
+    pub current_page: u32,
+    pub count: u32,
+}
 
 fn get<T: DeserializeOwned>(url: &str) -> Result<T, Error> {
     let body = ureq::get(url).call().map_err(|e| Error(e.to_string()))?;
@@ -87,7 +95,7 @@ fn get_timestamp() -> u64 {
     since_epoch.as_secs() * 1000 + since_epoch.subsec_nanos() as u64 / 1_000_000
 }
 
-fn private_call<T>(path: &str) -> Result<T, Error>
+fn private_get<T>(path: &str, query_parameters: Vec<(&str, &str)>) -> Result<T, Error>
 where
     T : std::fmt::Debug + DeserializeOwned,
 {
@@ -104,6 +112,7 @@ where
         .set("API-KEY", &api_key)
         .set("API-TIMESTAMP", &timestamp.to_string())
         .set("API-SIGN", &sign)
+        .query_pairs(query_parameters)
         .call().map_err(|e| Error(e.to_string()))?;
     body.into_json().map_err(|e| Error(e.to_string()))
 }
@@ -123,7 +132,49 @@ pub struct AccountAssetsResponseData {
     pub symbol: String
 }
 pub fn private_account_assets() -> Result<AccountAssetsResponse, Error> {
-    private_call("/v1/account/assets")
+    private_get("/v1/account/assets", vec![])
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ActiveOrdersResponse {
+    pub data: ActiveOrdersResponseData,
+    pub responsetime: String,
+    pub status: u8
+}
+#[derive(Debug, Deserialize)]
+pub struct ActiveOrdersResponseData {
+    pub pagination: Pagination,
+    pub list: Vec<ActiveOrdersResponseDatum>,
+}
+#[derive(Debug, Deserialize)]
+pub struct ActiveOrdersResponseDatum {
+    #[serde(rename = "rootOrderId")]
+    pub root_order_id: u128,
+    #[serde(rename = "orderId")]
+    pub order_id: u128,
+    pub symbol: String,
+    pub side: String,
+    #[serde(rename = "orderType")]
+    pub order_type: String,
+    #[serde(rename = "executionType")]
+    pub execution_type: String,
+    #[serde(rename = "settleType")]
+    pub settle_type: String,
+    pub size: String,
+    #[serde(rename = "executedSize")]
+    pub executed_size: String,
+    pub price: String,
+    #[serde(rename = "losscutPrice")]
+    pub losscut_price: String,
+    pub status: String,
+    #[serde(rename = "timeInForce")]
+    pub time_in_force: String,
+    pub timestamp: String
+}
+pub fn private_active_orders() -> Result<ActiveOrdersResponse, Error> {
+    private_get("/v1/activeOrders", vec![
+        ("symbol", "DAI")
+    ])
 }
 
 #[cfg(test)]
@@ -156,7 +207,8 @@ mod tests {
 
     #[test]
     fn verification() {
-        let res = private_account_assets();
+        // let res = private_account_assets();
+        let res = private_active_orders();
         println!("{:?}", res)
     }
 }
