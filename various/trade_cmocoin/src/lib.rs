@@ -87,6 +87,27 @@ fn get_timestamp() -> u64 {
     since_epoch.as_secs() * 1000 + since_epoch.subsec_nanos() as u64 / 1_000_000
 }
 
+fn private_call<T>(path: &str) -> Result<T, Error>
+where
+    T : std::fmt::Debug + DeserializeOwned,
+{
+    let (api_key, api_secret) = secrets();
+    let timestamp = get_timestamp();
+    let method = "GET";
+    let url = format!("{}{}", PRIVATE_API, path);
+
+    let text = format!("{}{}{}", timestamp, method, path);
+    let signed_key = hmac::Key::new(hmac::HMAC_SHA256, api_secret.as_bytes());
+    let sign = hex::encode(hmac::sign(&signed_key, text.as_bytes()).as_ref());
+
+    let body = ureq::get(&url)
+        .set("API-KEY", &api_key)
+        .set("API-TIMESTAMP", &timestamp.to_string())
+        .set("API-SIGN", &sign)
+        .call().map_err(|e| Error(e.to_string()))?;
+    body.into_json().map_err(|e| Error(e.to_string()))
+}
+
 #[derive(Debug, Deserialize)]
 pub struct AccountAssetsResponse {
     pub data: Vec<AccountAssetsResponseData>,
@@ -102,22 +123,7 @@ pub struct AccountAssetsResponseData {
     pub symbol: String
 }
 pub fn private_account_assets() -> Result<AccountAssetsResponse, Error> {
-    let (api_key, api_secret) = secrets();
-    let timestamp = get_timestamp();
-    let path = "/v1/account/assets";
-    let method = "GET";
-    let url = format!("{}{}", PRIVATE_API, path);
-
-    let text = format!("{}{}{}", timestamp, method, path);
-    let signed_key = hmac::Key::new(hmac::HMAC_SHA256, api_secret.as_bytes());
-    let sign = hex::encode(hmac::sign(&signed_key, text.as_bytes()).as_ref());
-
-    let body = ureq::get(&url)
-        .set("API-KEY", &api_key)
-        .set("API-TIMESTAMP", &timestamp.to_string())
-        .set("API-SIGN", &sign)
-        .call().map_err(|e| Error(e.to_string()))?;
-    body.into_json().map_err(|e| Error(e.to_string()))
+    private_call("/v1/account/assets")
 }
 
 #[cfg(test)]
