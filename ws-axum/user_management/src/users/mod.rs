@@ -11,6 +11,12 @@ pub struct User {
 pub type UsersResponse = Vec<User>;
 pub type UserResponse = User;
 
+#[derive(serde::Deserialize)]
+pub struct UserCreateRequestParam {
+    first: String,
+    last: String,
+}
+
 pub async fn index() -> (StatusCode, Json<UsersResponse>) {
     (StatusCode::OK, Json(dummy()))
 }
@@ -22,6 +28,18 @@ pub async fn get(Path(id): Path<u64>) -> (StatusCode, Json<Option<UserResponse>>
         Some(user) => (StatusCode::OK, Json(Some(user))),
         None => (StatusCode::NOT_FOUND, Json(None)),
     }
+}
+
+pub async fn create(
+    Json(payload): Json<UserCreateRequestParam>,
+) -> (StatusCode, Json<UserResponse>) {
+    let user = User {
+        id: dummy().len() as u64 + 1,
+        first: payload.first,
+        last: payload.last,
+    };
+
+    (StatusCode::CREATED, Json(user))
 }
 
 fn dummy() -> Vec<User> {
