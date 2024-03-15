@@ -1,4 +1,4 @@
-use axum::{http::StatusCode, Json};
+use axum::{extract::Path, http::StatusCode, Json};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -9,9 +9,19 @@ pub struct User {
 }
 
 pub type UsersResponse = Vec<User>;
+pub type UserResponse = User;
 
 pub async fn index() -> (StatusCode, Json<UsersResponse>) {
     (StatusCode::OK, Json(dummy()))
+}
+
+pub async fn get(Path(id): Path<u64>) -> (StatusCode, Json<Option<UserResponse>>) {
+    let user = dummy().into_iter().find(|user| user.id == id);
+
+    match user {
+        Some(user) => (StatusCode::OK, Json(Some(user))),
+        None => (StatusCode::NOT_FOUND, Json(None)),
+    }
 }
 
 fn dummy() -> Vec<User> {
