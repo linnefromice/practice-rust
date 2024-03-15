@@ -1,8 +1,7 @@
-use std::{collections::BTreeMap, time::{SystemTime, UNIX_EPOCH}};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use ring::hmac;
 use serde::{de::DeserializeOwned, Deserialize};
-use serde_json::json;
 
 const PUBLIC_API: &str = "https://api.coin.z.com/public";
 const PRIVATE_API: &str = "https://api.coin.z.com/private";
@@ -117,6 +116,29 @@ where
     body.into_json().map_err(|e| Error(e.to_string()))
 }
 
+fn private_post<T>(path: &str, body: serde_json::Value) -> Result<T, Error>
+where
+    T : std::fmt::Debug + DeserializeOwned,
+{
+    let (api_key, api_secret) = secrets();
+    let timestamp = get_timestamp();
+    let method = "POST";
+    let url = format!("{}{}", PRIVATE_API, path);
+
+    let text = format!("{}{}{}{}", timestamp, method, path, &body);
+    let signed_key = hmac::Key::new(hmac::HMAC_SHA256, api_secret.as_bytes());
+    let sign = hex::encode(hmac::sign(&signed_key, text.as_bytes()).as_ref());
+
+    let body = ureq::post(&url)
+        .set("content-type", "application/json")
+        .set("API-KEY", &api_key)
+        .set("API-TIMESTAMP", &timestamp.to_string())
+        .set("API-SIGN", &sign)
+        .send_json(body)
+        .map_err(|e| Error(e.to_string()))?;
+    body.into_json().map_err(|e| Error(e.to_string()))
+}
+
 #[derive(Debug, Deserialize)]
 pub struct AccountAssetsResponse {
     pub data: Vec<AccountAssetsResponseData>,
@@ -177,6 +199,23 @@ pub fn private_active_orders() -> Result<ActiveOrdersResponse, Error> {
     ])
 }
 
+#[derive(Debug, Deserialize)]
+pub struct OrderResponse {
+    pub data: String, // order id
+    pub responsetime: String,
+    pub status: u8
+}
+pub fn private_order() -> Result<OrderResponse, Error> {
+    let body = serde_json::json!({
+        "symbol": "DAI",
+        "side": "SELL",
+        "executionType": "LIMIT",
+        "size": "1",
+        "price": "160",
+    });
+    private_post("/v1/order", body)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -208,7 +247,8 @@ mod tests {
     #[test]
     fn verification() {
         // let res = private_account_assets();
-        let res = private_active_orders();
+        // let res = private_active_orders();
+        let res = private_order();
         println!("{:?}", res)
     }
 }
