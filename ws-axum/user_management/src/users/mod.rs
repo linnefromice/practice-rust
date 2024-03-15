@@ -17,10 +17,12 @@ pub struct UserCreateRequestParam {
     last: String,
 }
 
+// ex: curl -X GET http://localhost:3000/users
 pub async fn index() -> (StatusCode, Json<UsersResponse>) {
     (StatusCode::OK, Json(dummy()))
 }
 
+// ex: curl -X GET http://localhost:3000/users/1
 pub async fn get(Path(id): Path<u64>) -> (StatusCode, Json<Option<UserResponse>>) {
     let user = dummy().into_iter().find(|user| user.id == id);
 
@@ -30,6 +32,7 @@ pub async fn get(Path(id): Path<u64>) -> (StatusCode, Json<Option<UserResponse>>
     }
 }
 
+// ex: curl -X POST -H "Content-Type: application/json" -d '{"first":"Alice","last":"Roberts"}' http://localhost:3000/users
 pub async fn create(
     Json(payload): Json<UserCreateRequestParam>,
 ) -> (StatusCode, Json<UserResponse>) {
