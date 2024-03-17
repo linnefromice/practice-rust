@@ -3,17 +3,23 @@ use axum::{
     Router,
 };
 
+use crate::common::Database;
+
+mod common;
 mod users;
 
 #[tokio::main]
 async fn main() {
+    let db = Database::default();
+
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
         .route("/users", get(users::index))
         .route("/users/:id", get(users::get))
-        .route("/users", post(users::create));
+        .route("/users", post(users::create))
+        .with_state(db);
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
