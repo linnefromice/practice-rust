@@ -19,6 +19,8 @@ async fn main() {
         .route("/users", get(users::index))
         .route("/users/:id", get(users::get))
         .route("/users", post(users::create))
+        .route("/users/update", post(users::update))
+        .route("/users/delete", post(users::delete))
         .with_state(db);
 
     // run our app with hyper, listening globally on port 3000
