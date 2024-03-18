@@ -25,8 +25,8 @@ pub struct UserCreateRequestParam {
 
 // ex: curl -X GET http://localhost:3000/users
 pub async fn index(State(state): State<Database>) -> (StatusCode, Json<UsersResponse>) {
-    let data = state.clone().lock().unwrap().clone();
-    (StatusCode::OK, Json(data))
+    let users = state.clone().lock().unwrap().clone().users;
+    (StatusCode::OK, Json(users))
 }
 
 // ex: curl -X GET http://localhost:3000/users/1
@@ -34,8 +34,8 @@ pub async fn get(
     Path(id): Path<u64>,
     State(state): State<Database>,
 ) -> (StatusCode, Json<Option<UserResponse>>) {
-    let data = state.clone().lock().unwrap().clone();
-    let user = data.iter().find(|user| user.id == id).cloned();
+    let users = state.clone().lock().unwrap().clone().users;
+    let user = users.iter().find(|user| user.id == id).cloned();
 
     match user {
         Some(user) => (StatusCode::OK, Json(Some(user))),
@@ -48,13 +48,14 @@ pub async fn create(
     State(state): State<Database>,
     Json(payload): Json<UserCreateRequestParam>,
 ) -> (StatusCode, Json<UserResponse>) {
-    let data_len = state.clone().lock().unwrap().len();
+    let mut data = state.lock().unwrap();
     let user = User {
-        id: data_len as u64 + 1,
+        id: data.uuid as u64 + 1,
         first: payload.first,
         last: payload.last,
     };
-    state.lock().unwrap().push(user.clone());
+    data.users.push(user.clone());
+    data.uuid += 1;
 
     (StatusCode::CREATED, Json(user))
 }
@@ -65,7 +66,7 @@ pub async fn update(
     Json(payload): Json<User>,
 ) -> (StatusCode, Json<Option<UserResponse>>) {
     let mut is_updated = false;
-    state.lock().unwrap().iter_mut().for_each(|user| {
+    state.lock().unwrap().users.iter_mut().for_each(|user| {
         if user.id == payload.id {
             *user = payload.clone();
             is_updated = true;
@@ -83,11 +84,15 @@ pub async fn delete(
     State(state): State<Database>,
     Json(payload): Json<u64>,
 ) -> (StatusCode, Json<Option<UserResponse>>) {
-    let data = state.clone().lock().unwrap().clone();
-    let target = data.iter().find(|user| user.id == payload).cloned();
+    let mut storage_data = state.lock().unwrap();
+    let target = storage_data
+        .users
+        .iter()
+        .find(|user| user.id == payload)
+        .cloned();
 
     if let Some(target) = target {
-        state.lock().unwrap().retain(|user| user.id != payload);
+        storage_data.users.retain(|user| user.id != payload);
         return (StatusCode::ACCEPTED, Json(Some(target)));
     }
 
