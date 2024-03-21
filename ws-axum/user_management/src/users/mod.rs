@@ -1,4 +1,4 @@
-use diesel::{deserialize::Queryable, Insertable, Selectable};
+use diesel::{deserialize::Queryable, AsChangeset, Insertable, Selectable};
 use serde::{Deserialize, Serialize};
 
 pub mod presenter;
@@ -7,7 +7,7 @@ pub mod data_access;
 pub mod service;
 
 // Database
-#[derive(Clone, Debug, PartialEq, Queryable, Selectable)]
+#[derive(Clone, Debug, PartialEq, Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct UserDto {

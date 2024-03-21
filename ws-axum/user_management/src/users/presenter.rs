@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::common::Database;
 
-use super::{data_access, service, User};
+use super::{data_access, User};
 
 pub type UsersResponse = Vec<User>;
 pub type UserResponse = User;
@@ -30,10 +30,9 @@ pub async fn index(State(_state): State<Database>) -> (StatusCode, Json<UsersRes
 // ex: curl -X GET http://localhost:3000/users/1
 pub async fn get(
     Path(id): Path<u64>,
-    State(state): State<Database>,
+    State(_state): State<Database>,
 ) -> (StatusCode, Json<Option<UserResponse>>) {
-    let users = state.clone().lock().unwrap().clone().users;
-    let user = users.iter().find(|user| user.id == id).cloned();
+    let user = data_access::select(id as i32).ok().map(|user| user.into());
 
     match user {
         Some(user) => (StatusCode::OK, Json(Some(user))),
@@ -57,10 +56,10 @@ pub async fn create(
 
 // ex: curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "first":"Alice","last":"Roberts"}' http://localhost:3000/users/update
 pub async fn update(
-    State(state): State<Database>,
+    State(_state): State<Database>,
     Json(payload): Json<User>,
 ) -> (StatusCode, Json<Option<UserResponse>>) {
-    let is_updated = service::update_internal(&mut state.lock().unwrap(), payload.clone());
+    let is_updated = data_access::update(payload.clone().into()).is_ok();
 
     if is_updated {
         return (StatusCode::ACCEPTED, Json(Some(payload)));
@@ -70,13 +69,13 @@ pub async fn update(
 
 // ex: curl -X POST -H "Content-Type: application/json" -d '1' http://localhost:3000/users/delete
 pub async fn delete(
-    State(state): State<Database>,
+    State(_state): State<Database>,
     Json(payload): Json<u64>,
-) -> (StatusCode, Json<Option<UserResponse>>) {
-    let target = service::delete_internal(&mut state.lock().unwrap(), payload);
+) -> (StatusCode, Json<Option<u64>>) {
+    let is_delete = data_access::delete(payload as i32).is_ok();
 
-    if target.is_some() {
-        (StatusCode::ACCEPTED, Json(target))
+    if is_delete {
+        (StatusCode::ACCEPTED, Json(Some(payload as u64)))
     } else {
         (StatusCode::NOT_FOUND, Json(None))
     }

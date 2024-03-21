@@ -2,6 +2,7 @@ use crate::common::StorageData;
 
 use super::{User, UserCreateRequestParam};
 
+#[allow(dead_code)]
 pub fn create_internal(state: &mut StorageData, payload: UserCreateRequestParam) -> User {
     let user = User {
         id: state.uuid as u64 + 1,
@@ -13,6 +14,7 @@ pub fn create_internal(state: &mut StorageData, payload: UserCreateRequestParam)
     user
 }
 
+#[allow(dead_code)]
 pub fn update_internal(state: &mut StorageData, payload: User) -> bool {
     let mut is_updated = false;
     state.users.iter_mut().for_each(|user| {
@@ -24,6 +26,7 @@ pub fn update_internal(state: &mut StorageData, payload: User) -> bool {
     is_updated
 }
 
+#[allow(dead_code)]
 pub fn delete_internal(state: &mut StorageData, payload: u64) -> Option<User> {
     let target = state.users.iter().find(|user| user.id == payload).cloned();
 
