@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::common::Database;
 
-use super::{service, User};
+use super::{data_access, service, User};
 
 pub type UsersResponse = Vec<User>;
 pub type UserResponse = User;
@@ -19,8 +19,11 @@ pub struct UserCreateRequestParam {
 }
 
 // ex: curl -X GET http://localhost:3000/users
-pub async fn index(State(state): State<Database>) -> (StatusCode, Json<UsersResponse>) {
-    let users = state.clone().lock().unwrap().clone().users;
+pub async fn index(State(_state): State<Database>) -> (StatusCode, Json<UsersResponse>) {
+    let users: Vec<User> = data_access::select_all()
+        .iter()
+        .map(|user| user.clone().into())
+        .collect();
     (StatusCode::OK, Json(users))
 }
 
@@ -40,12 +43,16 @@ pub async fn get(
 
 // ex: curl -X POST -H "Content-Type: application/json" -d '{"first":"Alice","last":"Roberts"}' http://localhost:3000/users
 pub async fn create(
-    State(state): State<Database>,
+    State(_state): State<Database>,
     Json(payload): Json<UserCreateRequestParam>,
 ) -> (StatusCode, Json<UserResponse>) {
-    let mut data = state.lock().unwrap();
-    let user = service::create_internal(&mut data, payload);
-    (StatusCode::CREATED, Json(user))
+    let dto = User {
+        id: 0,
+        first: payload.first.clone(),
+        last: payload.last.clone(),
+    };
+    let _ = data_access::create(dto.clone().into());
+    (StatusCode::CREATED, Json(dto.into()))
 }
 
 // ex: curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "first":"Alice","last":"Roberts"}' http://localhost:3000/users/update

@@ -6,6 +6,7 @@ use axum::{
 use crate::common::Database;
 
 mod common;
+mod schema;
 mod users;
 
 #[tokio::main]
