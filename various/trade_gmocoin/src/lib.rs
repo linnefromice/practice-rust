@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{thread, time::{self, SystemTime, UNIX_EPOCH}};
 
 use ring::hmac;
 use serde::{de::DeserializeOwned, Deserialize};
@@ -136,7 +136,8 @@ where
         .set("API-SIGN", &sign)
         .send_json(body)
         .map_err(|e| Error(e.to_string()))?;
-    body.into_json().map_err(|e| Error(e.to_string()))
+    Err(Error(body.into_string().unwrap())) // Debug
+    // body.into_json().map_err(|e| Error(e.to_string()))
 }
 
 #[derive(Debug, Deserialize)]
@@ -216,6 +217,35 @@ pub fn private_order() -> Result<OrderResponse, Error> {
     private_post("/v1/order", body)
 }
 
+pub fn execute_orders() {
+    let symbol = "DAI";
+    let side = "SELL";
+    let execution_type = "LIMIT";
+    let size = "100";
+    let gap = 0.1;
+    let start_price = 153.8;
+    let end_price = 154.2;
+    let duration = time::Duration::from_secs(30);
+    let mut price = start_price;
+
+    loop {
+        let body = serde_json::json!({
+            "symbol": symbol,
+            "side": side,
+            "executionType": execution_type,
+            "size": size,
+            "price": price,
+        });
+        let res = private_post::<OrderResponse>("/v1/order", body);
+        println!("{:?}", res);
+        if price >= end_price {
+            break;
+        }
+        price += gap;
+        thread::sleep(duration.clone());
+    }    
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -248,7 +278,9 @@ mod tests {
     fn verification() {
         // let res = private_account_assets();
         // let res = private_active_orders();
-        let res = private_order();
-        println!("{:?}", res)
+        // let res = private_order();
+        // println!("{:?}", res)
+
+        execute_orders();
     }
 }
