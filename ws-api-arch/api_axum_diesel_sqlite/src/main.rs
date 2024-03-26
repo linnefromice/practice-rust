@@ -4,7 +4,9 @@ use axum::{
 };
 use models::Database;
 
+mod database;
 mod models;
+mod schema;
 mod users;
 
 #[tokio::main]
