@@ -25,7 +25,7 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
-const WEBHOOK_SIGNING_SECRET: &str = "whsec_ccd6fd3a1244c0420f295b07d1e93ae2296cb9ec341360d7b1291204d4746c58";
+const WEBHOOK_SIGNING_SECRET: &str = "";
 
 struct StripeEvent(Event);
 #[async_trait]
@@ -71,6 +71,13 @@ async fn handle_webhook(StripeEvent(event): StripeEvent) {
         EventType::AccountUpdated => {
             if let EventObject::Account(account) = event.data.object {
                 println!("Received account updated webhook for account: {:?}", account.id);
+            }
+        }
+        // 
+        EventType::SetupIntentSucceeded => {
+            if let EventObject::SetupIntent(setup_intent) = event.data.object {
+                println!("Received setup intent succeeded webhook with id: {:?}", setup_intent.id);
+                println!("{:?}", setup_intent);
             }
         }
         _ => println!("Unknown event encountered in webhook: {:?}", event.type_),
