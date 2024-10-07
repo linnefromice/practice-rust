@@ -221,29 +221,30 @@ pub fn execute_orders() {
     let symbol = "DAI";
     let side = "SELL";
     let execution_type = "LIMIT";
+    let unit = 10;
     let size = "100";
-    let gap = 0.1;
-    let start_price = 153.8;
-    let end_price = 154.2;
-    let duration = time::Duration::from_secs(30);
-    let mut price = start_price;
 
-    loop {
+    let scaled = 100; // note: not modified and confirm prices' unit
+    let start_price = 15500;
+    let end_price = 16000;
+
+    let duration = time::Duration::from_secs(1);
+
+    for price in (start_price..=end_price).step_by(unit) {
+        let float_price = price as f64 / scaled as f64;
         let body = serde_json::json!({
             "symbol": symbol,
             "side": side,
             "executionType": execution_type,
             "size": size,
-            "price": price,
+            "price": float_price,
         });
+        println!("{:?}", body);
         let res = private_post::<OrderResponse>("/v1/order", body);
         println!("{:?}", res);
-        if price >= end_price {
-            break;
-        }
-        price += gap;
         thread::sleep(duration.clone());
-    }    
+    }
+  
 }
 
 #[cfg(test)]
